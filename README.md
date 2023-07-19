@@ -120,7 +120,7 @@ console.assert(collateralValue > 0n, "value should be > 0"); // In this example,
 
 ```typescript
 const ABI = [
-  "function mintKreskoAsset(address account, address asset, uint256 amount) view returns (uint256)",
+  "function mintKreskoAsset(address account, address asset, uint256 amount)",
 ] as const;
 
 const txHash = await walletClient.rsWrite({
@@ -142,7 +142,7 @@ console.assert(!!txHash);
 
 ```typescript
 const ABI = [
-  "function mintKreskoAsset(address account, address asset, uint256 amount) view returns (uint256)",
+  "function mintKreskoAsset(address account, address asset, uint256 amount)",
 ] as const;
 
 const txHash = await walletClient.rsWrite({
@@ -171,7 +171,7 @@ import { getContract } from "@kreskolabs/viem-redstone-connector";
 ...
 
 const ABI = [
-  "function mintKreskoAsset(address account, address asset, uint256 amount) view returns (uint256)",
+  "function mintKreskoAsset(address account, address asset, uint256 amount)",
   "function getAccountCollateralValue(address user) view returns (uint256)",
 ] as const;
 
