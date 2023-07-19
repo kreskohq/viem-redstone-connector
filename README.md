@@ -4,34 +4,44 @@ This library exports extended [Public Client](https://viem.sh/docs/clients/publi
 
 The extensions contain [Redstone](https://docs.redstone.finance/docs/smart-contract-devs/get-started/redstone-core) integrations for contract reads and writes.
 
-#### Public Client extensions:
+#### Public Client extensions methods:
 
-- `rsRead` for calling read functions
-- `rsSimulate` for transaction simulation
-- `rsEstimateGas` for transaction gas estimation
-- `rsDataPackages` for data package response
-- `rsPrices` for easy access to current data package values
-- `dataFeeds` for current enabled data feeds
+- `rsRead` for calling read functions.
+- `rsSimulate` for transaction simulation.
+- `rsEstimateGas` for transaction gas estimation.
+- `rsDataPackages` for data package response.
+- `rsPrices` for easy access to current data package values.
+- `dataFeeds` for current enabled data feeds.
 
-#### Wallet Client extensions:
+#### Wallet Client extensions methods:
 
-- `rsWrite` for calling write functions
-- `rsEstimateGas` for transaction gas estimation
-- `rsDataPackages` for raw data packages response
-- `rsPrices` retrieve data package values (prices)
-- `dataFeeds` for current enabled data feeds
+- `rsWrite` for calling write functions.
+- `rsEstimateGas` for transaction gas estimation.
+- `rsDataPackages` for raw data packages response.
+- `rsPrices` retrieve data package values (prices).
+- `dataFeeds` for current enabled data feeds.
 
 #### getContract extensions
 
-- The [getContract](https://viem.sh/docs/contract/getContract.html) function implementation is overridden with above functions.
+- [getContract](https://viem.sh/docs/contract/getContract.html) read/write/simulate/estimateGas methods are overridden with above.
 
 ## How to
 
 ### Setup
 
+Install the package from npm
+
+```sh
+pnpm i @kreskolabs/viem-redstone-connector
+```
+
 Setup your data service configuration when creating `WalletClient` and/or `PublicClient`:
 
 ```typescript
+import {
+  getPublicClientRs,
+  getWalletClientRs,
+} from "@kreskolabs/viem-redstone-connector";
 import { arbitrumGoerli } from "viem/chains";
 import { MNEMONIC_TESTNET } from "../env.ts";
 
@@ -156,6 +166,10 @@ console.assert(!!txHash);
 #### Setup
 
 ```typescript
+import { getContract } from "@kreskolabs/viem-redstone-connector";
+
+...
+
 const ABI = [
   "function mintKreskoAsset(address account, address asset, uint256 amount) view returns (uint256)",
   "function getAccountCollateralValue(address user) view returns (uint256)",
