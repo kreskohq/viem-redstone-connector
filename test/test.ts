@@ -1,12 +1,11 @@
-import sdk from "redstone-sdk";
-import { fromHex, hexToString, http, stringToHex } from "viem";
+import { http } from "viem";
 import { mnemonicToAccount } from "viem/accounts";
 import { arbitrumGoerli } from "viem/chains";
 import { MNEMONIC_TESTNET } from "../env.ts";
+import { getContract } from "../extensions.ts";
 import { getPublicClientRs, getWalletClientRs } from "../index.ts";
 import { Kresko } from "../utils/kresko.ts";
 import { demoDataServiceConfig } from "../utils/mocks.ts";
-import { getContract } from "../extensions.ts";
 
 const publicClient = getPublicClientRs(
   {
