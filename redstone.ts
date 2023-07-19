@@ -5,9 +5,9 @@ import {
 } from "redstone-protocol";
 import sdk, { DataPackagesRequestParams } from "redstone-sdk";
 import {
-  MockDataPackageConfig,
-  MockSignerIndex,
-  SimpleNumericMockConfig,
+  type MockDataPackageConfig,
+  type MockSignerIndex,
+  type SimpleNumericMockConfig,
 } from "./types.ts";
 import {
   DEFAULT_TIMESTAMP_FOR_TESTS,

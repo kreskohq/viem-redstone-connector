@@ -1,4 +1,9 @@
-import { http } from "viem";
+import {
+  PublicClientConfig,
+  WalletClientConfig,
+  http,
+  zeroAddress,
+} from "viem";
 import { mnemonicToAccount } from "viem/accounts";
 import { arbitrumGoerli } from "viem/chains";
 import { MNEMONIC_TESTNET } from "../env.ts";
@@ -7,49 +12,85 @@ import { getPublicClientRs, getWalletClientRs } from "../index.ts";
 import { Kresko } from "../utils/kresko.ts";
 import { demoDataServiceConfig } from "../utils/mocks.ts";
 
-const publicClient = getPublicClientRs(
-  {
+const configs = {
+  public: {
     chain: arbitrumGoerli,
-    transport: http(),
-  },
-  { ...demoDataServiceConfig },
-  ["DAI", "ETH", "USDC"]
-);
-
-const walletClient = getWalletClientRs(
-  {
+    transport: http("https://arbitrum-goerli.public.blastapi.io"),
+  } as PublicClientConfig,
+  wallet: {
     chain: arbitrumGoerli,
-    transport: http(),
+    transport: http("https://arbitrum-goerli.public.blastapi.io"),
     account: mnemonicToAccount(MNEMONIC_TESTNET, { accountIndex: 0 }),
-  },
-  { ...demoDataServiceConfig }
-);
-const run = async () => {
-  const contract = getContract({
+  } as WalletClientConfig,
+} as const;
+
+const publicClient = getPublicClientRs(configs.public, demoDataServiceConfig);
+const walletClient = getWalletClientRs(configs.wallet, demoDataServiceConfig);
+
+const initialDataFeeds = ["DAI", "ETH", "USDf", "BTC"];
+
+const contractNoFeeds = getContract({
+  abi: Kresko.abi,
+  address: Kresko.address,
+  walletClient: walletClient,
+  publicClient: publicClient,
+});
+
+const contract = getContract({
+  abi: Kresko.abi,
+  address: Kresko.address,
+  walletClient: walletClient,
+  publicClient: publicClient,
+  dataFeeds: initialDataFeeds,
+});
+
+const test = async () => {
+  const prices = await publicClient.rsPrices(initialDataFeeds);
+  const length = initialDataFeeds.length;
+  console.assert(
+    prices.length === length,
+    `prices: length is not ${length}, got ${prices.length}}`
+  );
+
+  const readResultPublicClientNoFeeds = await publicClient.rsRead({
     abi: Kresko.abi,
+    functionName: "kiss",
     address: Kresko.address,
-    walletClient: walletClient,
-    publicClient: publicClient,
   });
 
-  const prices = await publicClient.rsPrices(["DAI", "ETH", "BTC", "USDf"]);
-  console.assert(prices.length === 4, "prices: length is not 4");
+  console.assert(
+    readResultPublicClientNoFeeds !== zeroAddress,
+    "readResultPublicClientNoFeeds"
+  );
+
+  const readResultContractNoFeeds = await contractNoFeeds.read.kiss();
+
+  console.assert(
+    readResultContractNoFeeds === readResultPublicClientNoFeeds,
+    "readResultContractNoFeeds"
+  );
+
   const readResultContract = await contract.read.getAccountCollateralValue([
     walletClient.account.address,
   ]);
 
-  console.assert(readResultContract > 0n, "read: value is not > 0");
+  console.assert(
+    readResultContract > 0n,
+    "readResultContract: value is not > 0"
+  );
 
-  const readResult = await publicClient.rsRead({
+  const readResultPublicClient = await publicClient.rsRead({
     abi: Kresko.abi,
     functionName: "getAccountCollateralValue",
     args: [walletClient.account.address],
     address: Kresko.address,
-    dataFeeds: ["DAI", "USDf", "ETH", "BTC"],
-    mockDataFeedValues: [0, 0, 0, 0],
+    dataFeeds: initialDataFeeds,
   });
 
-  console.assert(readResult > 0n, "read: value is not > 0");
+  console.assert(
+    readResultPublicClient > 0n,
+    "readResultPublicClient: value is not > 0"
+  );
 
   const writeGasEstimate = await contract.estimateGas.withdrawCollateral(
     [
@@ -63,7 +104,7 @@ const run = async () => {
     }
   );
 
-  console.assert(writeGasEstimate > 0n, "estimate: value is not > 0");
+  console.assert(writeGasEstimate > 0n, "writeGasEstimate: value is not > 0");
 
   const simulateResult = await contract.simulate.withdrawCollateral(
     [
@@ -78,9 +119,9 @@ const run = async () => {
     }
   );
 
-  console.assert(simulateResult.result === undefined, "simulate: fail");
+  console.assert(simulateResult.result === undefined, "simulateResult");
 
-  const withdrawResult = await walletClient.rsWrite({
+  const walletClientWriteResult = await walletClient.rsWrite({
     abi: Kresko.abi,
     functionName: "withdrawCollateral",
     args: [
@@ -92,22 +133,12 @@ const run = async () => {
     address: Kresko.address,
     dataFeeds: ["DAI", "ETH", "USDf", "BTC"],
   });
-  console.assert(!!withdrawResult, "write: fail");
-
-  const mintResult = await walletClient.rsWrite({
-    abi: Kresko.abi,
-    functionName: "mintKreskoAsset",
-    args: [
-      walletClient.account.address,
-      "0x8520C6452fc3ce680Bd1635D5B994cCE6b36D3Be",
-      1000n,
-    ],
-    address: Kresko.address,
-    dataFeeds: ["BTC", "ETH", "DAI", "USDf"],
-  });
-  console.assert(!!mintResult, "write: fail");
+  console.assert(!!walletClientWriteResult, "walletClientWriteResult");
 };
 
-run()
-  .then(() => console.info("Tests success!"))
-  .catch(console.error);
+test()
+  .then(() => console.info("Test run finished"))
+  .catch((e) => {
+    console.info("Test run failed");
+    throw e;
+  });

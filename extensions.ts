@@ -1,24 +1,24 @@
-import { AbiEvent } from "abitype";
+import type { AbiEvent } from "abitype";
 import {
-  Abi,
-  Account,
-  Address,
-  BaseError,
-  CallParameters,
-  Chain,
-  CreateContractEventFilterParameters,
-  DecodeFunctionResultParameters,
-  EncodeFunctionDataParameters,
-  EstimateContractGasReturnType,
-  EstimateGasParameters,
-  GetContractParameters,
-  ReadContractParameters,
-  ReadContractReturnType,
-  SimulateContractParameters,
-  SimulateContractReturnType,
-  Transport,
-  WatchContractEventParameters,
-  WriteContractParameters,
+  type Abi,
+  type Account,
+  type Address,
+  type BaseError,
+  type CallParameters,
+  type Chain,
+  type CreateContractEventFilterParameters,
+  type DecodeFunctionResultParameters,
+  type EncodeFunctionDataParameters,
+  type EstimateContractGasReturnType,
+  type EstimateGasParameters,
+  type GetContractParameters,
+  type ReadContractParameters,
+  type ReadContractReturnType,
+  type SimulateContractParameters,
+  type SimulateContractReturnType,
+  type Transport,
+  type WatchContractEventParameters,
+  type WriteContractParameters,
   createPublicClient,
   createWalletClient,
   decodeFunctionResult,
@@ -29,7 +29,7 @@ import { parseAccount } from "viem/accounts";
 import { estimateGas } from "viem/actions";
 import { getPublicClientRs, getWalletClientRs } from ".";
 import { RedstoneHelper } from "./redstone";
-import {
+import type {
   EstimateContractGasParamsRs,
   GetContractReturnType,
   RsReadParams,
@@ -67,19 +67,17 @@ export const getRsReadFn = (
         (dataFeeds
           ? await redstone.getPayload(dataFeeds, mockDataFeedValues)
           : "");
-
-      const { data } = await client.call({
-        data: calldata,
+      const result = await client.call({
         to: address,
         from: account,
+        data: calldata,
         ...callParams,
       } as unknown as CallParameters);
-
       return decodeFunctionResult({
         abi,
         args,
         functionName,
-        data: data || "0x",
+        data: result?.data ?? "0x",
       } as DecodeFunctionResultParameters<TAbi, TFunctionName>) as ReadContractReturnType<
         TAbi,
         TFunctionName
@@ -105,7 +103,7 @@ export const getRsWriteFn = (
     TAbi extends Abi | readonly unknown[] = Abi,
     TChain extends Chain | undefined = Chain,
     TFN extends string | undefined = string,
-    TChainO extends Chain | undefined = undefined
+    TChainOverride extends Chain | undefined = undefined
   >({
     abi,
     functionName,
@@ -117,7 +115,7 @@ export const getRsWriteFn = (
     dataSuffix,
     chain,
     ...request
-  }: WriteParamsRs<TAbi, TFN, TChain, TAcc, TChainO>) {
+  }: WriteParamsRs<TAbi, TFN, TChain, TAcc, TChainOverride>) {
     try {
       const argsForEncoding = {
         abi,
@@ -153,7 +151,7 @@ export const getRsEstimateFn = (
     TAbi extends Abi | readonly unknown[] = Abi,
     TChain extends Chain | undefined = Chain,
     TFN extends string | undefined = string,
-    TChainO extends Chain | undefined = undefined
+    TChainOverride extends Chain | undefined = undefined
   >({
     abi,
     functionName,
@@ -165,7 +163,7 @@ export const getRsEstimateFn = (
     dataSuffix,
     chain,
     ...request
-  }: WriteParamsRs<TAbi, TFN, TChain, TAcc, TChainO>) {
+  }: WriteParamsRs<TAbi, TFN, TChain, TAcc, TChainOverride>) {
     try {
       const argsForEncoding = {
         abi,
@@ -239,6 +237,7 @@ export const getEstimateContractGasFn = (
       const account = request.account
         ? parseAccount(request.account)
         : undefined;
+
       throw getContractError(err as BaseError, {
         abi: abi as Abi,
         address,
@@ -469,6 +468,7 @@ export function getContract<
               ]
             ) => {
               const { args, options } = getFunctionParameters(parameters);
+
               return publicClient.rsRead({
                 abi,
                 address,

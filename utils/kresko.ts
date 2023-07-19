@@ -3200,5 +3200,62 @@ export const Kresko = {
       stateMutability: "view",
       type: "function",
     },
+    {
+      inputs: [],
+      name: "CalldataMustHaveValidPayload",
+      type: "error",
+    },
+    {
+      inputs: [],
+      name: "CalldataOverOrUnderFlow",
+      type: "error",
+    },
+    {
+      inputs: [],
+      name: "EachSignerMustProvideTheSameValue",
+      type: "error",
+    },
+    {
+      inputs: [],
+      name: "EmptyCalldataPointersArr",
+      type: "error",
+    },
+    {
+      inputs: [],
+      name: "IncorrectUnsignedMetadataSize",
+      type: "error",
+    },
+    {
+      inputs: [
+        {
+          internalType: "uint256",
+          name: "receivedSignersCount",
+          type: "uint256",
+        },
+        {
+          internalType: "uint256",
+          name: "requiredSignersCount",
+          type: "uint256",
+        },
+      ],
+      name: "InsufficientNumberOfUniqueSigners",
+      type: "error",
+    },
+    {
+      inputs: [],
+      name: "InvalidCalldataPointer",
+      type: "error",
+    },
+    {
+      inputs: [
+        {
+          internalType: "address",
+          name: "receivedSigner",
+          type: "address",
+        },
+      ],
+      name: "SignerNotAuthorised",
+      type: "error",
+    },
   ],
 } as const;

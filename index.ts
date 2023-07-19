@@ -1,8 +1,6 @@
 import {
-  PublicClient,
-  PublicClientConfig,
-  WalletClient,
-  WalletClientConfig,
+  type PublicClientConfig,
+  type WalletClientConfig,
   createPublicClient,
   createWalletClient,
 } from "viem";
@@ -13,7 +11,7 @@ import {
   getRsWriteFn,
   getSimulateContractFn,
 } from "./extensions.ts";
-import { DataPackageRequestParams, RedstoneHelper } from "./redstone.ts";
+import { type DataPackageRequestParams, RedstoneHelper } from "./redstone.ts";
 
 /**
  * Viem getContract with Redstone calldata wrapping for read/write/simulate/estimateGas
@@ -41,7 +39,7 @@ export const getPublicClientRs = (
  * @returns Viem client with extended Redstone methods `rsPrices`, `rsDataPackage`, `rsRead`, `rsEstimateGas`, `rsSimulate`
  */
 export const extendPublicClient = (
-  publicClient: PublicClient,
+  publicClient: ReturnType<typeof createPublicClient>,
   redstoneConfig: DataPackageRequestParams,
   dataFeeds?: string[]
 ) => {
@@ -79,7 +77,7 @@ export const getWalletClientRs = (
  *
  */
 export const extendWalletClient = (
-  walletClient: WalletClient,
+  walletClient: ReturnType<typeof createWalletClient>,
   redstoneConfig: DataPackageRequestParams,
   dataFeeds?: string[]
 ) => {

@@ -6,13 +6,6 @@ import {
   MockSignerIndex,
   SimpleNumericMockConfig,
 } from "../types";
-export const testFeeds = [
-  { dataFeedId: "DAI", value: 0 },
-  { dataFeedId: "USDC", value: 0 },
-  { dataFeedId: "ETH", value: 0 },
-  { dataFeedId: "BTC", value: 0 },
-  { dataFeedId: "KISS", value: 0 },
-];
 
 export const demoDataServiceConfig = {
   dataServiceId: "redstone-main-demo",
