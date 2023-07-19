@@ -12,7 +12,6 @@ import {
   getSimulateContractFn,
 } from "./extensions.ts";
 import { type DataPackageRequestParams, RedstoneHelper } from "./redstone.ts";
-
 /**
  * Viem getContract with Redstone calldata wrapping for read/write/simulate/estimateGas
  */
@@ -91,3 +90,5 @@ export const extendWalletClient = (
     rsEstimateGas: getEstimateContractGasFn(dataFeeds, redstone, client),
   }));
 };
+export type ExtendedPublicClient = ReturnType<typeof extendPublicClient>;
+export type ExtendedWalletClient = ReturnType<typeof extendWalletClient>;
