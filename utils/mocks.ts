@@ -17,7 +17,6 @@ export const testFeeds = [
 export const demoDataServiceConfig = {
   dataServiceId: "redstone-main-demo",
   uniqueSignersCount: 1,
-  dataFeeds: ["ETH", "DAI", "BTC", "USDC"],
   urls: ["https://d33trozg86ya9x.cloudfront.net"],
 };
 export const MAX_MOCK_SIGNERS_COUNT = 19;

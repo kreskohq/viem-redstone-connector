@@ -45,6 +45,8 @@ const run = async () => {
     functionName: "getAccountCollateralValue",
     args: [walletClient.account.address],
     address: Kresko.address,
+    dataFeeds: ["DAI", "USDf", "ETH", "BTC"],
+    mockDataFeedValues: [0, 0, 0, 0],
   });
 
   console.assert(readResult > 0n, "read: value is not > 0");
