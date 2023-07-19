@@ -1,26 +1,29 @@
 import {
+  PublicClient,
   PublicClientConfig,
+  WalletClient,
   WalletClientConfig,
   createPublicClient,
   createWalletClient,
 } from "viem";
-import { DataPackageRequestParams, RedstoneHelper } from "./redstone.ts";
 import {
+  getContract,
   getEstimateContractGasFn,
   getRsReadFn,
   getRsWriteFn,
   getSimulateContractFn,
-  getContract,
 } from "./extensions.ts";
+import { DataPackageRequestParams, RedstoneHelper } from "./redstone.ts";
 
 /**
  * Viem getContract with Redstone calldata wrapping for read/write/simulate/estimateGas
  */
 export { getContract };
+
 /**
  * Viem public client with extended Redstone methods
  * @param config Viem public client config
- * @param redstoneConfig Redstone config
+ * @param redstoneConfig Redstone data service config
  * @param dataFeeds Hoisted data feeds to be used in the client, if any
  * @returns Viem client with extended Redstone methods `rsPrices`, `rsDataPackage`, `rsRead`, `rsEstimateGas`, `rsSimulate`
  */
@@ -28,9 +31,22 @@ export const getPublicClientRs = (
   config: PublicClientConfig,
   redstoneConfig: DataPackageRequestParams,
   dataFeeds?: string[]
+) => extendPublicClient(createPublicClient(config), redstoneConfig, dataFeeds);
+
+/**
+ * Extend a viem public client with Redstone methods
+ * @param publicClient Viem public client
+ * @param redstoneConfig Redstone data service config
+ * @param dataFeeds Hoisted data feeds to be used in the client, if any
+ * @returns Viem client with extended Redstone methods `rsPrices`, `rsDataPackage`, `rsRead`, `rsEstimateGas`, `rsSimulate`
+ */
+export const extendPublicClient = (
+  publicClient: PublicClient,
+  redstoneConfig: DataPackageRequestParams,
+  dataFeeds?: string[]
 ) => {
   const redstone = new RedstoneHelper(redstoneConfig);
-  return createPublicClient(config).extend((client) => ({
+  return publicClient.extend((client) => ({
     dataFeeds: dataFeeds,
     rsPrices: redstone.getPrices,
     rsDataPackage: redstone.getDataPackage,
@@ -41,9 +57,9 @@ export const getPublicClientRs = (
 };
 
 /**
- * Viem wallet client with Redstone wrapper methods
+ * Get a viem wallet client with Redstone wrapper methods
  * @param config Viem wallet client config
- * @param redstoneConfig Redstone config
+ * @param redstoneConfig Redstone data service config
  * @param dataFeeds Hoisted data feeds to be used in the client, if any
  * @returns Viem client with extended Redstone methods `rsPrices`, `rsDataPackage`, `rsWrite`, `rsEstimateGas`
  *
@@ -52,15 +68,28 @@ export const getWalletClientRs = (
   config: WalletClientConfig,
   redstoneConfig: DataPackageRequestParams,
   dataFeeds?: string[]
+) => extendWalletClient(createWalletClient(config), redstoneConfig, dataFeeds);
+
+/**
+ * Extend a viem wallet client with Redstone methods
+ * @param walletClient Viem wallet client
+ * @param redstoneConfig Redstone data service config
+ * @param dataFeeds Hoisted data feeds to be used in the client, if any
+ * @returns Viem client with extended Redstone methods `rsPrices`, `rsDataPackage`, `rsWrite`, `rsEstimateGas`
+ *
+ */
+export const extendWalletClient = (
+  walletClient: WalletClient,
+  redstoneConfig: DataPackageRequestParams,
+  dataFeeds?: string[]
 ) => {
   const redstone = new RedstoneHelper(redstoneConfig);
-  return createWalletClient(config).extend((client) => {
-    return {
-      dataFeeds: dataFeeds,
-      rsPrices: redstone.getPrices,
-      rsDataPackage: redstone.getDataPackage,
-      rsWrite: getRsWriteFn(dataFeeds, redstone, client),
-      rsEstimateGas: getEstimateContractGasFn(dataFeeds, redstone, client),
-    };
-  });
+
+  return walletClient.extend((client) => ({
+    dataFeeds: dataFeeds,
+    rsPrices: redstone.getPrices,
+    rsDataPackage: redstone.getDataPackage,
+    rsWrite: getRsWriteFn(dataFeeds, redstone, client),
+    rsEstimateGas: getEstimateContractGasFn(dataFeeds, redstone, client),
+  }));
 };

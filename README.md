@@ -4,6 +4,8 @@ This library exports extended [Public Client](https://viem.sh/docs/clients/publi
 
 The extensions contain [Redstone](https://docs.redstone.finance/docs/smart-contract-devs/get-started/redstone-core) integrations for contract reads and writes.
 
+For integration with wagmi you might want to just extend wagmi-provided clients with `extendPublicClient` and/or `extendWalletClient`.
+
 #### Public Client extensions methods:
 
 - `rsRead` for calling read functions.
@@ -67,7 +69,7 @@ const publicClient = getPublicClientRs(
 const walletClient = getWalletClientRs(
   {
     chain: arbitrumGoerli,
-    transport: http(),
+    transport: http(), // with wagmi: custom(await account.connector.getProvider())
     account: mnemonicToAccount(MNEMONIC_TESTNET),
   },
   dataServicesConfig,
@@ -80,9 +82,9 @@ const walletClient = getWalletClientRs(
 #### Reading Contracts
 
 ```typescript
-const ABI = [
+const ABI = parseAbi([
   "function getAccountCollateralValue(address user) view returns (uint256)",
-] as const; // Type inference in viem requires `as const`
+] as const); // Type inference in viem requires `as const`
 
 const collateralValue = await publicClient.rsRead({
   abi: ABI,
@@ -98,9 +100,9 @@ console.assert(collateralValue > 0n, "value should be > 0");
 #### Reading Contracts with Mock Numeric Values
 
 ```typescript
-const ABI = [
+const ABI = parseAbi([
   "function getAccountCollateralValue(address user) view returns (uint256)",
-] as const;
+] as const);
 
 const collateralValue = await publicClient.rsRead({
   abi: ABI,
@@ -141,9 +143,9 @@ console.assert(!!txHash);
 #### Write to Contracts with Mock Numeric Values
 
 ```typescript
-const ABI = [
+const ABI = parseAbi([
   "function mintKreskoAsset(address account, address asset, uint256 amount)",
-] as const;
+] as const);
 
 const txHash = await walletClient.rsWrite({
   abi: ABI,
@@ -170,10 +172,10 @@ import { getContract } from "@kreskolabs/viem-redstone-connector";
 
 ...
 
-const ABI = [
+const ABI = parseAbi([
   "function mintKreskoAsset(address account, address asset, uint256 amount)",
   "function getAccountCollateralValue(address user) view returns (uint256)",
-] as const;
+] as const);
 
 const contract = getContract({
   abi: ABI,
