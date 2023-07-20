@@ -3,7 +3,11 @@ import {
   NumericDataPoint,
   RedstonePayload,
 } from "redstone-protocol";
-import sdk, { DataPackagesRequestParams } from "redstone-sdk";
+import {
+  requestRedstonePayload,
+  DataPackagesRequestParams,
+  requestDataPackages,
+} from "redstone-sdk";
 import {
   type MockDataPackageConfig,
   type MockSignerIndex,
@@ -36,7 +40,7 @@ export class RedstoneBase {
   }
 
   public requestRedstonePayload = async (feeds: string[]) => {
-    return sdk.requestRedstonePayload({
+    return requestRedstonePayload({
       dataServiceId: this.dataServiceId,
       uniqueSignersCount: this.uniqueSignersCount,
       dataFeeds: feeds,
@@ -45,7 +49,7 @@ export class RedstoneBase {
   };
 
   public getDataPackage = async (feeds: string[]) => {
-    return sdk.requestDataPackages({
+    return requestDataPackages({
       dataServiceId: this.dataServiceId,
       uniqueSignersCount: this.uniqueSignersCount,
       dataFeeds: feeds,
