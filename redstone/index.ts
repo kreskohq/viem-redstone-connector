@@ -1,25 +1,24 @@
-import {
-  DataPackage,
-  NumericDataPoint,
-  RedstonePayload,
-} from "redstone-protocol";
-import {
-  requestRedstonePayload,
-  DataPackagesRequestParams,
-  requestDataPackages,
-} from "redstone-sdk";
-import {
-  type MockDataPackageConfig,
-  type MockSignerIndex,
-  type SimpleNumericMockConfig,
-} from "./types.ts";
+import * as secp from "@noble/secp256k1";
+import { webcrypto } from "node:crypto";
+import { toBytes } from "viem";
 import {
   DEFAULT_TIMESTAMP_FOR_TESTS,
   MAX_MOCK_SIGNERS_COUNT,
   MOCK_PRIVATE_KEYS,
-  getMockSignerAddress,
-  getMockSignerPrivateKey,
-} from "./utils/mocks.ts";
+} from "./mocks.ts";
+import {
+  DataPackagesRequestParams,
+  SignedDataPackage,
+  type SimpleNumericMockConfig,
+} from "./types.ts";
+import {
+  getDataPackageHash,
+  getMockHash,
+  requestPayload,
+  requestPayloadHash,
+} from "./utils.ts";
+// @ts-ignore
+if (!globalThis.crypto) globalThis.crypto = webcrypto;
 
 export type DataPackageRequestParams = Omit<
   DataPackagesRequestParams,
@@ -40,7 +39,7 @@ export class RedstoneBase {
   }
 
   public requestRedstonePayload = async (feeds: string[]) => {
-    return requestRedstonePayload({
+    return requestPayloadHash({
       dataServiceId: this.dataServiceId,
       uniqueSignersCount: this.uniqueSignersCount,
       dataFeeds: feeds,
@@ -49,7 +48,7 @@ export class RedstoneBase {
   };
 
   public getDataPackage = async (feeds: string[]) => {
-    return requestDataPackages({
+    return requestPayload({
       dataServiceId: this.dataServiceId,
       uniqueSignersCount: this.uniqueSignersCount,
       dataFeeds: feeds,
@@ -60,7 +59,7 @@ export class RedstoneBase {
     const packages = await this.getDataPackage(feeds);
     return feeds.map((feed) => ({
       feed,
-      price: packages[feed][0].dataPackage.toObj().dataPoints[0].value,
+      price: packages[feed][0].dataPoints[0].value,
     }));
   };
 }
@@ -79,27 +78,7 @@ export class RedstoneHelper extends RedstoneBase {
       : this.requestRedstonePayload(feeds);
   };
 
-  public static getSimpleMock = (
-    feeds: { dataFeedId: string; value: number }[],
-    timestampMilliseconds = Date.now()
-  ) => {
-    const datapoints = feeds.map(({ dataFeedId, value }) => {
-      return new NumericDataPoint({
-        dataFeedId,
-        value,
-        decimals: 8,
-      });
-    });
-    const dataPackage = new DataPackage(datapoints, timestampMilliseconds);
-    const signedDataPackages = [dataPackage.sign(MOCK_PRIVATE_KEYS[0])];
-
-    return RedstonePayload.prepare(
-      signedDataPackages,
-      "kresko-redstone-viem#simple-mock"
-    );
-  };
-
-  public static getSimpleNumericMockPayload = (
+  public static getSimpleNumericMockPayload = async (
     config: SimpleNumericMockConfig
   ) => {
     if (config.mockSignersCount > MAX_MOCK_SIGNERS_COUNT) {
@@ -108,28 +87,46 @@ export class RedstoneHelper extends RedstoneBase {
       );
     }
 
-    // Prepare mock data packages configs
-    const mockDataPackages: MockDataPackageConfig[] = [];
+    let signedPackages: { [dataFeedId: string]: SignedDataPackage[] } = {};
     for (
       let signerIndex = 0;
       signerIndex < config.mockSignersCount;
       signerIndex++
     ) {
       for (const dataPointObj of config.dataPoints) {
-        mockDataPackages.push({
-          signer: getMockSignerAddress(signerIndex as MockSignerIndex),
-          dataPackage: new DataPackage(
-            [new NumericDataPoint(dataPointObj)],
-            config.timestampMilliseconds || DEFAULT_TIMESTAMP_FOR_TESTS
-          ),
-        });
+        const dataPackage = {
+          dataPoints: [dataPointObj],
+          timestampMilliseconds:
+            config.timestampMilliseconds || DEFAULT_TIMESTAMP_FOR_TESTS,
+        };
+        const digestBytes = getDataPackageHash(dataPackage);
+        const signed = await secp.signAsync(
+          digestBytes,
+          toBytes(MOCK_PRIVATE_KEYS[signerIndex]),
+          {
+            lowS: true,
+          }
+        );
+        const signature = `${signed.toCompactHex()}${
+          signed.recovery ? "1c" : "1b"
+        }`;
+
+        signedPackages[dataPointObj.dataFeedId] = [
+          {
+            ...dataPackage,
+            signature: Buffer.from(signature, "hex").toString("base64"),
+          },
+        ];
       }
     }
 
-    return RedstonePayload.prepare(
-      mockDataPackages.map(({ dataPackage, signer }) =>
-        dataPackage.sign(getMockSignerPrivateKey(signer))
-      ),
+    return getMockHash(
+      signedPackages,
+      {
+        dataServiceId: "",
+        dataFeeds: config.dataPoints.map((dp) => dp.dataFeedId),
+        uniqueSignersCount: config.mockSignersCount,
+      },
       "kresko-redstone-viem#simple-numeric-mock"
     );
   };

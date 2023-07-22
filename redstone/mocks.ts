@@ -1,17 +1,12 @@
-import { DataPackage, NumericDataPoint } from "redstone-protocol";
 import { privateKeyToAccount } from "viem/accounts";
-import {
-  MockDataPackageConfig,
-  MockSignerAddress,
-  MockSignerIndex,
-  SimpleNumericMockConfig,
-} from "../types";
+import { MockSignerAddress, MockSignerIndex } from "./types";
 
 export const demoDataServiceConfig = {
   dataServiceId: "redstone-main-demo",
   uniqueSignersCount: 1,
   urls: ["https://d33trozg86ya9x.cloudfront.net"],
 };
+
 export const MAX_MOCK_SIGNERS_COUNT = 19;
 export const MOCK_PRIVATE_KEYS: `0x${string}`[] = [];
 
@@ -113,34 +108,4 @@ export const getMockSignerPrivateKey = (
     }
   }
   throw new Error(`Invalid mock signer address: ${mockSignerAddress}`);
-};
-
-export const getSimpleNumericMockPayload = (
-  config: SimpleNumericMockConfig
-) => {
-  if (config.mockSignersCount > MAX_MOCK_SIGNERS_COUNT) {
-    throw new Error(`mockSignersCount should be <= ${MAX_MOCK_SIGNERS_COUNT}`);
-  }
-
-  // Prepare mock data packages configs
-  const mockDataPackages: MockDataPackageConfig[] = [];
-  for (
-    let signerIndex = 0;
-    signerIndex < config.mockSignersCount;
-    signerIndex++
-  ) {
-    for (const dataPointObj of config.dataPoints) {
-      mockDataPackages.push({
-        signer: getMockSignerAddress(signerIndex as MockSignerIndex),
-        dataPackage: new DataPackage(
-          [new NumericDataPoint(dataPointObj)],
-          config.timestampMilliseconds || DEFAULT_TIMESTAMP_FOR_TESTS
-        ),
-      });
-    }
-  }
-
-  return mockDataPackages.map(({ dataPackage, signer }) =>
-    dataPackage.sign(getMockSignerPrivateKey(signer))
-  );
 };

@@ -9,9 +9,8 @@ import { arbitrumGoerli } from "viem/chains";
 import { MNEMONIC_TESTNET } from "../env.ts";
 import { getContract } from "../extensions.ts";
 import { getPublicClientRs, getWalletClientRs } from "../index.ts";
+import { demoDataServiceConfig } from "../redstone/mocks.ts";
 import { Kresko } from "../utils/kresko.ts";
-import { demoDataServiceConfig } from "../utils/mocks.ts";
-
 const configs = {
   public: {
     chain: arbitrumGoerli,

@@ -11,7 +11,10 @@ import {
   getRsWriteFn,
   getSimulateContractFn,
 } from "./extensions.ts";
-import { type DataPackageRequestParams, RedstoneHelper } from "./redstone.ts";
+import {
+  type DataPackageRequestParams,
+  RedstoneHelper,
+} from "./redstone/index.ts";
 /**
  * Viem getContract with Redstone calldata wrapping for read/write/simulate/estimateGas
  */
