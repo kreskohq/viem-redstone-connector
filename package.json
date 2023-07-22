@@ -1,6 +1,6 @@
 {
   "name": "@kreskolabs/viem-redstone-connector",
-  "version": "0.2.4",
+  "version": "0.3.0",
   "author": "kresko",
   "license": "MIT",
   "description": "Provides viem extensions and overrides for using Redstone oracles",

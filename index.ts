@@ -5,7 +5,6 @@ import {
   createWalletClient,
 } from "viem";
 import {
-  getContract,
   getEstimateContractGasFn,
   getRsReadFn,
   getRsWriteFn,
@@ -18,7 +17,7 @@ import {
 /**
  * Viem getContract with Redstone calldata wrapping for read/write/simulate/estimateGas
  */
-export { getContract };
+export { getContract, splitSignature } from "./extensions.ts";
 
 /**
  * Viem public client with extended Redstone methods

@@ -219,58 +219,6 @@ function serializeDataPoints(dataPoints: DataPoint[]): Uint8Array {
   return concat(sorted.map(dataPointToBytes));
 }
 
-export const splitSignatureBase64 = (signature: string) => {
-  const bufferSignature = Buffer.from(signature, "base64");
-  const [r, s, v] = [
-    toHex(bufferSignature.subarray(0, 32)),
-    toHex(bufferSignature.subarray(32, 64)),
-    bufferSignature[64],
-  ];
-
-  const recoveryParam = 1 - (v % 2);
-
-  // Compute _vs from recoveryParam and s
-  if (recoveryParam) {
-    bufferSignature[32] |= 0x80;
-  }
-  const _vs = toHex(bufferSignature.subarray(32, 64));
-  const compact = r + _vs.substring(2);
-
-  return {
-    r,
-    s,
-    v,
-    _vs: toHex(bufferSignature.subarray(32, 64)),
-    compact,
-  };
-};
-
-export const splitSignature = (signature: string) => {
-  const bytesSignature = toBytes(signature);
-  const [r, s, v] = [
-    toHex(bytesSignature.slice(0, 32)),
-    toHex(bytesSignature.slice(32, 64)),
-    bytesSignature[64],
-  ];
-
-  const recoveryParam = 1 - (v % 2);
-
-  // Compute _vs from recoveryParam and s
-  if (recoveryParam) {
-    bytesSignature[32] |= 0x80;
-  }
-  const _vs = toHex(bytesSignature.subarray(32, 64));
-  const compact = r + _vs.substring(2);
-
-  return {
-    r,
-    s,
-    v,
-    _vs: toHex(bytesSignature.subarray(32, 64)),
-    compact,
-  };
-};
-
 export const requestPayloadHash = async (
   reqParams: DataPackagesRequestParams,
   metadata = ""

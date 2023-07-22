@@ -8,12 +8,6 @@ import {
   ExtractAbiFunctionNames,
 } from "abitype";
 import {
-  DataPackage,
-  INumericDataPoint,
-  IStringDataPoint,
-  utils,
-} from "redstone-protocol";
-import {
   Chain,
   Account,
   Abi,

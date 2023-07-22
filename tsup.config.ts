@@ -4,7 +4,7 @@ export default defineConfig(() => {
     entry: ["index.ts"],
     format: ["cjs", "esm"],
     dts: true,
-    minify: false,
+    minify: true,
     outDir: "dist",
     splitting: true,
     target: ["esnext"],
