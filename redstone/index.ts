@@ -1,5 +1,6 @@
 import * as secp from "@noble/secp256k1";
-import { webcrypto } from "node:crypto";
+import { webcrypto } from "crypto";
+
 import { toBytes } from "viem";
 import {
   DEFAULT_TIMESTAMP_FOR_TESTS,
@@ -17,7 +18,7 @@ import {
   requestPayload,
   requestPayloadHash,
 } from "./utils.ts";
-// @ts-ignore
+// @ts-expect-error
 if (!globalThis.crypto) globalThis.crypto = webcrypto;
 
 export type DataPackageRequestParams = Omit<
