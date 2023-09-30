@@ -12,13 +12,10 @@ import {
   Address,
   CallParameters,
   Chain,
-  ContractFunctionConfig,
   CreateContractEventFilterParameters,
   EstimateContractGasReturnType,
   EstimateGasParameters,
   FormattedTransactionRequest,
-  GetValue,
-  Hex,
   Narrow,
   PublicClient,
   ReadContractParameters,
@@ -32,16 +29,6 @@ import {
   WriteContractReturnType,
   Account,
 } from "viem";
-
-import type {
-  IsNarrowable,
-  IsNever,
-  IsUndefined,
-  Or,
-  Prettify,
-  UnionOmit,
-} from "./type-utils";
-import * as LocalContract from "./viem-contract";
 
 export type RsReadParams<
   TAbi extends Abi | readonly unknown[] = Abi,
@@ -562,7 +549,7 @@ type GetWatchEvent<
   TAbiEvent extends AbiEvent = TAbi extends Abi
     ? ExtractAbiEvent<TAbi, TEventName>
     : AbiEvent,
-  Args = LocalContract.AbiEventParametersToPrimitiveTypes<TAbiEvent["inputs"]>,
+  Args = AbiEventParametersToPrimitiveTypes<TAbiEvent["inputs"]>,
   Options = Prettify<
     Omit<
       WatchContractEventParameters<TAbi, TEventName>,
@@ -592,7 +579,7 @@ type GetEventFilter<
   TAbiEvent extends AbiEvent = TAbi extends Abi
     ? ExtractAbiEvent<TAbi, TEventName>
     : AbiEvent,
-  Args = LocalContract.AbiEventParametersToPrimitiveTypes<TAbiEvent["inputs"]>,
+  Args = AbiEventParametersToPrimitiveTypes<TAbiEvent["inputs"]>,
   Options = Prettify<
     Omit<
       CreateContractEventFilterParameters<TAbi, TEventName>,
@@ -602,9 +589,7 @@ type GetEventFilter<
   IndexedInputs = Extract<TAbiEvent["inputs"][number], { indexed: true }>
 > = Narrowable extends true
   ? <
-      TArgs extends
-        | LocalContract.MaybeExtractEventArgsFromAbi<TAbi, TEventName>
-        | undefined,
+      TArgs extends MaybeExtractEventArgsFromAbi<TAbi, TEventName> | undefined,
       TStrict extends boolean | undefined = undefined
     >(
       ...parameters: IsNever<IndexedInputs> extends true
@@ -614,12 +599,7 @@ type GetEventFilter<
             options?: Options & { strict?: TStrict }
           ]
     ) => Promise<
-      LocalContract.CreateContractEventFilterReturnType<
-        TAbi,
-        TEventName,
-        TArgs,
-        TStrict
-      >
+      CreateContractEventFilterReturnType<TAbi, TEventName, TArgs, TStrict>
     >
   : <TStrict extends boolean | undefined = undefined>(
       ...parameters:
@@ -628,7 +608,7 @@ type GetEventFilter<
             args: readonly unknown[] | CreateContractFilterOptions,
             options?: Options & { strict?: TStrict }
           ]
-    ) => Promise<LocalContract.CreateContractEventFilterReturnType>;
+    ) => Promise<CreateContractEventFilterReturnType>;
 type CreateContractFilterOptions =
   RemoveProperties<CreateContractEventFilterParameters>;
 type WatchContractEventOptions = RemoveProperties<WatchContractEventParameters>;
@@ -664,3 +644,752 @@ export type SimulateContractParametersRs<
       ? CallParameters<TChain>["value"]
       : CallParameters["value"]
   >;
+
+import type {
+  AbiConstructor,
+  AbiError,
+  AbiParameter,
+  AbiParameterToPrimitiveType,
+  AbiStateMutability,
+  ExtractAbiError,
+  ExtractAbiErrorNames,
+} from "abitype";
+import {
+  BlockNumber,
+  BlockTag,
+  EIP1193RequestFn,
+  TransactionRequest,
+  PublicRpcSchema,
+} from "viem";
+
+export type AbiItem = Abi[number];
+
+export type EventDefinition = `${string}(${string})`;
+
+export type ContractFunctionConfig<
+  TAbi extends Abi | readonly unknown[] = Abi,
+  TFunctionName extends string = string,
+  TAbiStateMutability extends AbiStateMutability = AbiStateMutability
+> = {
+  /** Contract ABI */
+  abi: Narrow<TAbi>;
+  /** Contract address */
+  address: Address;
+  /** Function to invoke on the contract */
+  functionName: InferFunctionName<TAbi, TFunctionName, TAbiStateMutability>;
+} & GetFunctionArgs<TAbi, TFunctionName>;
+
+export type ContractFunctionResult<
+  TAbi extends Abi | readonly unknown[] = Abi,
+  TFunctionName extends string = string,
+  TAbiFunction extends AbiFunction & {
+    type: "function";
+  } = TAbi extends Abi ? ExtractAbiFunction<TAbi, TFunctionName> : AbiFunction,
+  TArgs = AbiParametersToPrimitiveTypes<TAbiFunction["outputs"]>,
+  FailedToParseArgs =
+    | ([TArgs] extends [never] ? true : false)
+    | (readonly unknown[] extends TArgs ? true : false)
+> = true extends FailedToParseArgs
+  ? unknown
+  : TArgs extends readonly []
+  ? void
+  : TArgs extends readonly [infer Arg]
+  ? Arg
+  : TArgs;
+
+export type GetValue<
+  TAbi extends Abi | readonly unknown[],
+  TFunctionName extends string,
+  TValueType = TransactionRequest["value"],
+  TAbiFunction extends AbiFunction = TAbi extends Abi
+    ? ExtractAbiFunction<TAbi, TFunctionName>
+    : AbiFunction,
+  _Narrowable extends boolean = IsNarrowable<TAbi, Abi>
+> = _Narrowable extends true
+  ? TAbiFunction["stateMutability"] extends "payable"
+    ? { value?: NoUndefined<TValueType> }
+    : TAbiFunction["payable"] extends true
+    ? { value?: NoUndefined<TValueType> }
+    : { value?: never }
+  : { value?: TValueType };
+
+export type MaybeAbiEventName<TAbiEvent extends AbiEvent | undefined> =
+  TAbiEvent extends AbiEvent ? TAbiEvent["name"] : undefined;
+
+export type MaybeExtractEventArgsFromAbi<
+  TAbi extends Abi | readonly unknown[] | undefined,
+  TEventName extends string | undefined
+> = TAbi extends Abi | readonly unknown[]
+  ? TEventName extends string
+    ? GetEventArgs<TAbi, TEventName>
+    : undefined
+  : undefined;
+
+//////////////////////////////////////////////////////////////////////
+// ABI item name
+
+export type InferErrorName<
+  TAbi extends Abi | readonly unknown[] = Abi,
+  TErrorName extends string | undefined = string
+> = TAbi extends Abi
+  ? ExtractAbiErrorNames<TAbi> extends infer AbiErrorNames
+    ?
+        | AbiErrorNames
+        | (TErrorName extends AbiErrorNames ? TErrorName : never)
+        | (Abi extends TAbi ? string : never)
+    : never
+  : TErrorName;
+
+export type InferEventName<
+  TAbi extends Abi | readonly unknown[] = Abi,
+  TEventName extends string | undefined = string
+> = TAbi extends Abi
+  ? ExtractAbiEventNames<TAbi> extends infer AbiEventNames
+    ? AbiEventNames | (TEventName extends AbiEventNames ? TEventName : never)
+    : never
+  : TEventName;
+
+export type InferFunctionName<
+  TAbi extends Abi | readonly unknown[] = Abi,
+  TFunctionName extends string | undefined = string,
+  TAbiStateMutability extends AbiStateMutability = AbiStateMutability
+> = TAbi extends Abi
+  ? ExtractAbiFunctionNames<
+      TAbi,
+      TAbiStateMutability
+    > extends infer AbiFunctionNames
+    ?
+        | AbiFunctionNames
+        | (TFunctionName extends AbiFunctionNames ? TFunctionName : never)
+        | (Abi extends TAbi ? string : never)
+    : never
+  : TFunctionName;
+
+export type InferItemName<
+  TAbi extends Abi | readonly unknown[] = Abi,
+  TName extends string = string
+> = TAbi extends Abi
+  ? ExtractAbiItemNames<TAbi> extends infer AbiNames
+    ?
+        | AbiNames
+        | (TName extends AbiNames ? TName : never)
+        | (Abi extends TAbi ? string : never)
+    : never
+  : TName;
+type ExtractAbiItemNames<TAbi extends Abi> =
+  | ExtractAbiFunctionNames<TAbi>
+  | ExtractAbiEventNames<TAbi>
+  | ExtractAbiErrorNames<TAbi>;
+
+//////////////////////////////////////////////////////////////////////
+// ABI item args
+
+export type GetFunctionArgs<
+  TAbi extends Abi | readonly unknown[],
+  TFunctionName extends string,
+  TAbiFunction extends AbiFunction = TAbi extends Abi
+    ? ExtractAbiFunction<TAbi, TFunctionName>
+    : AbiFunction,
+  TArgs = AbiParametersToPrimitiveTypes<TAbiFunction["inputs"]>,
+  FailedToParseArgs =
+    | ([TArgs] extends [never] ? true : false)
+    | (readonly unknown[] extends TArgs ? true : false)
+> = true extends FailedToParseArgs
+  ? {
+      /**
+       * Arguments to pass contract method
+       *
+       * Use a [const assertion](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-4.html#const-assertions) on {@link abi} for type inference.
+       */
+      args?: readonly unknown[];
+    }
+  : TArgs extends readonly []
+  ? { args?: never }
+  : {
+      /** Arguments to pass contract method */ args: TArgs;
+    };
+
+export type RootFilter<
+  T extends readonly unknown[],
+  P,
+  Acc extends readonly unknown[] = []
+> = T extends readonly [infer F, ...infer Rest extends readonly unknown[]]
+  ? [F] extends [P]
+    ? Filter<Rest, P, [...Acc, F]>
+    : Filter<Rest, P, Acc>
+  : readonly [...Acc];
+type FilterRpcSchema = RootFilter<
+  PublicRpcSchema,
+  {
+    Method:
+      | "eth_getFilterLogs"
+      | "eth_getFilterChanges"
+      | "eth_uninstallFilter";
+  }
+>;
+
+export type GetConstructorArgs<
+  TAbi extends Abi | readonly unknown[],
+  TAbiConstructor extends AbiConstructor = TAbi extends Abi
+    ? Extract<TAbi[number], { type: "constructor" }>
+    : AbiConstructor,
+  TArgs = AbiParametersToPrimitiveTypes<TAbiConstructor["inputs"]>,
+  FailedToParseArgs =
+    | ([TArgs] extends [never] ? true : false)
+    | (readonly unknown[] extends TArgs ? true : false)
+> = true extends FailedToParseArgs
+  ? {
+      /**
+       * Arguments to pass contract constructor
+       *
+       * Use a [const assertion](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-4.html#const-assertions) on {@link abi} for type inference.
+       */
+      args?: readonly unknown[];
+    }
+  : TArgs extends readonly []
+  ? { args?: never }
+  : {
+      /** Arguments to pass contract constructor */ args: TArgs;
+    };
+
+export type GetErrorArgs<
+  TAbi extends Abi | readonly unknown[],
+  TErrorName extends string,
+  TAbiError extends AbiError = TAbi extends Abi
+    ? ExtractAbiError<TAbi, TErrorName>
+    : AbiError,
+  TArgs = AbiParametersToPrimitiveTypes<TAbiError["inputs"]>,
+  FailedToParseArgs =
+    | ([TArgs] extends [never] ? true : false)
+    | (readonly unknown[] extends TArgs ? true : false)
+> = true extends FailedToParseArgs
+  ? {
+      /**
+       * Arguments to pass contract method
+       *
+       * Use a [const assertion](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-4.html#const-assertions) on {@link abi} for type inference.
+       */
+      args?: readonly unknown[];
+    }
+  : TArgs extends readonly []
+  ? { args?: never }
+  : {
+      /** Arguments to pass contract method */ args: TArgs;
+    };
+
+export type BaseFilter<
+  TFilterType extends FilterType = "event",
+  TAbi extends Abi | readonly unknown[] | undefined = undefined,
+  TEventName extends string | undefined = undefined,
+  TArgs extends
+    | MaybeExtractEventArgsFromAbi<TAbi, TEventName>
+    | undefined = MaybeExtractEventArgsFromAbi<TAbi, TEventName>,
+  TStrict extends boolean | undefined = undefined,
+  TFromBlock extends BlockNumber | BlockTag | undefined = undefined,
+  TToBlock extends BlockNumber | BlockTag | undefined = undefined
+> = {
+  id: Hex;
+  request: EIP1193RequestFn<FilterRpcSchema>;
+  type: TFilterType;
+} & (TFilterType extends "event"
+  ? {
+      fromBlock?: TFromBlock;
+      toBlock?: TToBlock;
+    } & (TAbi extends Abi
+      ? undefined extends TEventName
+        ? {
+            abi: TAbi;
+            args?: never;
+            eventName?: never;
+            strict: TStrict;
+          }
+        : TArgs extends MaybeExtractEventArgsFromAbi<TAbi, TEventName>
+        ? {
+            abi: TAbi;
+            args: TArgs;
+            eventName: TEventName;
+            strict: TStrict;
+          }
+        : {
+            abi: TAbi;
+            args?: never;
+            eventName: TEventName;
+            strict: TStrict;
+          }
+      : {
+          abi?: never;
+          args?: never;
+          eventName?: never;
+          strict?: never;
+        })
+  : {});
+
+export type CreateContractEventFilterReturnType<
+  TAbi extends Abi | readonly unknown[] = Abi,
+  TEventName extends string | undefined = string | undefined,
+  TArgs extends MaybeExtractEventArgsFromAbi<TAbi, TEventName> | undefined =
+    | MaybeExtractEventArgsFromAbi<TAbi, TEventName>
+    | undefined,
+  TStrict extends boolean | undefined = undefined,
+  TFromBlock extends BlockNumber | BlockTag | undefined = undefined,
+  TToBlock extends BlockNumber | BlockTag | undefined = undefined
+> = BaseFilter<"event", TAbi, TEventName, TArgs, TStrict, TFromBlock, TToBlock>;
+
+export type GetEventArgs<
+  TAbi extends Abi | readonly unknown[],
+  TEventName extends string,
+  TConfig extends EventParameterOptions = DefaultEventParameterOptions,
+  TAbiEvent extends AbiEvent & { type: "event" } = TAbi extends Abi
+    ? ExtractAbiEvent<TAbi, TEventName>
+    : AbiEvent & { type: "event" },
+  TArgs = AbiEventParametersToPrimitiveTypes<TAbiEvent["inputs"], TConfig>,
+  FailedToParseArgs =
+    | ([TArgs] extends [never] ? true : false)
+    | (readonly unknown[] extends TArgs ? true : false)
+> = true extends FailedToParseArgs
+  ? readonly unknown[] | Record<string, unknown>
+  : TArgs;
+
+export type GetEventArgsFromTopics<
+  TAbi extends Abi | readonly unknown[],
+  TEventName extends string,
+  TTopics extends LogTopic[],
+  TData extends Hex | undefined,
+  TStrict extends boolean = true,
+  TAbiEvent extends AbiEvent & { type: "event" } = TAbi extends Abi
+    ? ExtractAbiEvent<TAbi, TEventName>
+    : AbiEvent & { type: "event" },
+  TArgs = AbiEventParametersToPrimitiveTypes<
+    TAbiEvent["inputs"],
+    { EnableUnion: false; IndexedOnly: false; Required: TStrict }
+  >
+> = TTopics extends readonly []
+  ? TData extends undefined
+    ? { args?: never }
+    : { args?: TArgs }
+  : { args: TArgs };
+
+//////////////////////////////////////////////////////////////////////
+// ABI event types
+
+type EventParameterOptions = {
+  EnableUnion?: boolean;
+  IndexedOnly?: boolean;
+  Required?: boolean;
+};
+type DefaultEventParameterOptions = {
+  EnableUnion: true;
+  IndexedOnly: true;
+  Required: false;
+};
+
+type HashedEventTypes = "bytes" | "string" | "tuple" | `${string}[${string}]`;
+
+// TODO: Speed up by returning immediately as soon as named parameter is found.
+type _HasUnnamedAbiParameter<TAbiParameters extends readonly AbiParameter[]> =
+  TAbiParameters extends readonly [
+    infer Head extends AbiParameter,
+    ...infer Tail extends readonly AbiParameter[]
+  ]
+    ? Head extends { name: string }
+      ? Head["name"] extends ""
+        ? true
+        : _HasUnnamedAbiParameter<Tail>
+      : true
+    : false;
+
+/**
+ * @internal
+ */
+export type LogTopicType<
+  TPrimitiveType = Hex,
+  TTopic extends LogTopic = LogTopic
+> = TTopic extends Hex
+  ? TPrimitiveType
+  : TTopic extends Hex[]
+  ? TPrimitiveType[]
+  : TTopic extends null
+  ? null
+  : never;
+
+/**
+ * @internal
+ */
+export type AbiEventParameterToPrimitiveType<
+  TAbiParameter extends AbiParameter,
+  Options extends EventParameterOptions = DefaultEventParameterOptions,
+  _Type = AbiParameterToPrimitiveType<TAbiParameter>
+> = Options["EnableUnion"] extends true ? LogTopicType<_Type> : _Type;
+
+/**
+ * @internal
+ */
+export type AbiEventTopicToPrimitiveType<
+  TAbiParameter extends AbiParameter,
+  TTopic extends LogTopic,
+  TPrimitiveType = TAbiParameter["type"] extends HashedEventTypes
+    ? TTopic
+    : AbiParameterToPrimitiveType<TAbiParameter>
+> = LogTopicType<TPrimitiveType, TTopic>;
+
+export type AbiEventParametersToPrimitiveTypes<
+  TAbiParameters extends readonly AbiParameter[],
+  Options extends EventParameterOptions = DefaultEventParameterOptions
+  // Remove non-indexed parameters based on `Options['IndexedOnly']`
+> = TAbiParameters extends readonly []
+  ? readonly []
+  : Filter<
+      TAbiParameters,
+      Options["IndexedOnly"] extends true ? { indexed: true } : object
+    > extends infer Filtered extends readonly AbiParameter[]
+  ? _HasUnnamedAbiParameter<Filtered> extends true
+    ? // Has unnamed tuple parameters so return as array
+      | readonly [
+            ...{
+              [K in keyof Filtered]: AbiEventParameterToPrimitiveType<
+                Filtered[K],
+                Options
+              >;
+            }
+          ]
+        // Distribute over tuple to represent optional parameters
+        | (Options["Required"] extends true
+            ? never
+            : // Distribute over tuple to represent optional parameters
+            Filtered extends readonly [
+                ...infer Head extends readonly AbiParameter[],
+                infer _
+              ]
+            ? AbiEventParametersToPrimitiveTypes<
+                readonly [...{ [K in keyof Head]: Omit<Head[K], "name"> }],
+                Options
+              >
+            : never)
+    : // All tuple parameters are named so return as object
+    {
+        [Parameter in Filtered[number] as Parameter extends {
+          name: infer Name extends string;
+        }
+          ? Name
+          : never]?: AbiEventParameterToPrimitiveType<Parameter, Options>;
+      } extends infer Mapped
+    ? Prettify<
+        MaybeRequired<
+          Mapped,
+          Options["Required"] extends boolean ? Options["Required"] : false
+        >
+      >
+    : never
+  : never;
+
+import { Log } from "viem";
+
+/**
+ * Filters out all members of {@link T} that are not {@link P}
+ *
+ * @param T - Items to filter
+ * @param P - Type to filter out
+ * @returns Filtered items
+ *
+ * @example
+ * type Result = Filter<['a', 'b', 'c'], 'b'>
+ * //   ^? type Result = ['a', 'c']
+ */
+export type Filter<
+  T extends readonly unknown[],
+  P,
+  Acc extends readonly unknown[] = []
+> = T extends readonly [infer F, ...infer Rest extends readonly unknown[]]
+  ? [F] extends [P]
+    ? Filter<Rest, P, [...Acc, F]>
+    : Filter<Rest, P, Acc>
+  : readonly [...Acc];
+
+/**
+ * @description Checks if {@link T} can be narrowed further than {@link U}
+ * @param T - Type to check
+ * @param U - Type to against
+ * @example
+ * type Result = IsNarrowable<'foo', string>
+ * //   ^? true
+ */
+export type IsNarrowable<T, U> = IsNever<
+  (T extends U ? true : false) & (U extends T ? false : true)
+> extends true
+  ? false
+  : true;
+
+/**
+ * @description Checks if {@link T} is `never`
+ * @param T - Type to check
+ * @example
+ * type Result = IsNever<never>
+ * //   ^? type Result = true
+ */
+export type IsNever<T> = [T] extends [never] ? true : false;
+
+/**
+ * @description Evaluates boolean "or" condition for {@link T} properties.
+ * @param T - Type to check
+ *
+ * * @example
+ * type Result = Or<[false, true, false]>
+ * //   ^? type Result = true
+ *
+ * @example
+ * type Result = Or<[false, false, false]>
+ * //   ^? type Result = false
+ */
+export type Or<T extends readonly unknown[]> = T extends readonly [
+  infer Head,
+  ...infer Tail
+]
+  ? Head extends true
+    ? true
+    : Or<Tail>
+  : false;
+
+/**
+ * @description Checks if {@link T} is `undefined`
+ * @param T - Type to check
+ * @example
+ * type Result = IsUndefined<undefined>
+ * //   ^? type Result = true
+ */
+export type IsUndefined<T> = [undefined] extends [T] ? true : false;
+
+/**
+ * Excludes empty attributes from T if TMaybeExclude is true.
+ *
+ * @example
+ * type Result = MaybeExcludeEmpty<{ a: string, b: number, c: [] }, true>
+ * //   ^? type Result = { a: string, b: number }
+ * @example
+ * type Result = MaybeExcludeEmpty<{ a: string, b: number, c: [] }, false>
+ * //   ^? type Result = { a: string, b: number, c: [] }
+ * @example
+ * type Result = MaybeExcludeEmpty<{ a: string, b: number, c: undefined }, true>
+ * //   ^? type Result = { a: string, b: number }
+ */
+export type MaybeExcludeEmpty<
+  T,
+  TMaybeExclude extends boolean
+> = TMaybeExclude extends true ? Exclude<T, [] | null | undefined> : T;
+
+export type MaybePromise<T> = T | Promise<T>;
+
+/**
+ * @description Makes attributes on the type T required if TRequired is true.
+ *
+ * @example
+ * MaybeRequired<{ a: string, b?: number }, true>
+ * => { a: string, b: number }
+ *
+ * MaybeRequired<{ a: string, b?: number }, false>
+ * => { a: string, b?: number }
+ */
+export type MaybeRequired<T, TRequired extends boolean> = TRequired extends true
+  ? Required<T>
+  : T;
+
+/**
+ * @description Makes the attribute on the type T allow undefined if TUndefinedish is true.
+ *
+ * @example
+ * MaybeUndefined<string, true>
+ * => string | undefined
+ *
+ * MaybeUndefined<string, false>
+ * => string
+ */
+export type MaybeUndefined<
+  T,
+  TUndefinedish extends boolean
+> = TUndefinedish extends true ? T | undefined : T;
+
+/**
+ * @private Helper for `Assign`. This is a workaround for tsc generating errorneous type definitions.
+ */
+export type Assign_<T, U> = {
+  [K in keyof T as K extends keyof U
+    ? U[K] extends void
+      ? never
+      : K
+    : K]: K extends keyof U ? U[K] : T[K];
+};
+
+/**
+ * @description Assigns the properties of U onto T.
+ *
+ * @example
+ * Assign<{ a: string, b: number }, { a: undefined, c: boolean }>
+ * => { a: undefined, b: number, c: boolean }
+ */
+export type Assign<T, U> = Assign_<T, U> & U;
+
+/**
+ * @description Makes nullable properties from T optional.
+ *
+ * @example
+ * OptionalNullable<{ a: string | undefined, c: number }>
+ * => { a?: string | undefined, c: number }
+ */
+export type OptionalNullable<T> = {
+  [K in keyof T as T[K] extends NonNullable<unknown> ? K : never]: T[K];
+} & {
+  [K in keyof T as T[K] extends NonNullable<unknown> ? never : K]?: T[K];
+};
+
+/**
+ * @description Make properties K of type T never.
+ *
+ * @example
+ * NeverBy<{ a: string, b: boolean, c: number }, 'a' | 'c'>
+ * => { a: never, b: boolean, c: never }
+ */
+export type NeverBy<T, K extends keyof T> = {
+  [U in keyof T]: U extends K ? never : T[U];
+};
+
+/**
+ * @description Constructs a type by excluding `undefined` from `T`.
+ *
+ * @example
+ * NoUndefined<string | undefined>
+ * => string
+ */
+export type NoUndefined<T> = T extends undefined ? never : T;
+
+/**
+ * @description Construct a type with the properties of union type T except for those in type K.
+ * @example
+ * type Result = UnionOmit<{ a: string, b: number } | { a: string, b: undefined, c: number }, 'a'>
+ * => { b: number } | { b: undefined, c: number }
+ */
+export type UnionOmit<T, K extends keyof any> = T extends any
+  ? Omit<T, K>
+  : never;
+
+/**
+ * @description Creates a type that is a partial of T, but with the required keys K.
+ *
+ * @example
+ * PartialBy<{ a: string, b: number }, 'a'>
+ * => { a?: string, b: number }
+ */
+export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
+
+/**
+ * @description Combines members of an intersection into a readable type.
+ *
+ * @see {@link https://twitter.com/mattpocockuk/status/1622730173446557697?s=20&t=NdpAcmEFXY01xkqU3KO0Mg}
+ * @example
+ * Prettify<{ a: string } & { b: string } & { c: number, d: bigint }>
+ * => { a: string, b: string, c: number, d: bigint }
+ */
+export type Prettify<T> = {
+  [K in keyof T]: T[K];
+} & {};
+
+type TrimLeft<T, Chars extends string = " "> = T extends `${Chars}${infer R}`
+  ? TrimLeft<R>
+  : T;
+type TrimRight<T, Chars extends string = " "> = T extends `${infer R}${Chars}`
+  ? TrimRight<R>
+  : T;
+
+/**
+ * @description Creates a type with required keys K from T.
+ *
+ * @example
+ * type Result = RequiredBy<{ a?: string, b?: number, c: number }, 'a' | 'c'>
+ * //   ^? { a: string, b?: number, c: number }
+ */
+export type RequiredBy<T, K extends keyof T> = Omit<T, K> &
+  Required<Pick<T, K>>;
+
+/**
+ * @description Trims empty space from type T.
+ *
+ * @example
+ * Trim<'      lol  '>
+ * => 'lol'
+ */
+export type Trim<T, Chars extends string = " "> = TrimLeft<
+  TrimRight<T, Chars>,
+  Chars
+>;
+
+/**
+ * @description Creates a type that extracts the values of T.
+ *
+ * @example
+ * ValueOf<{ a: string, b: number }>
+ * => string | number
+ */
+export type ValueOf<T> = T[keyof T];
+
+export type ByteArray = Uint8Array;
+export type Hex = `0x${string}`;
+export type Hash = `0x${string}`;
+export type LogTopic = Hex | Hex[] | null;
+export type SignableMessage =
+  | string
+  | {
+      /** Raw data representation of the message. */
+      raw: Hex | ByteArray;
+    };
+export type Signature = {
+  // TODO(v2): Make `bigint`
+  r: Hex;
+  // TODO(v2): Make `bigint`
+  s: Hex;
+  // TODO(v2): `v` to `recovery`
+  v: bigint;
+};
+
+export type FilterType = "transaction" | "block" | "event";
+
+export type AccessList = { address: Address; storageKeys: Hex[] }[];
+
+export type TransactionType = ValueOf<typeof transactionType> | (string & {});
+export const transactionType = {
+  "0x0": "legacy",
+  "0x1": "eip2930",
+  "0x2": "eip1559",
+} as const;
+export type TransactionReceipt<
+  TQuantity = bigint,
+  TIndex = number,
+  TStatus = "success" | "reverted",
+  TType = TransactionType
+> = {
+  /** Hash of block containing this transaction */
+  blockHash: Hash;
+  /** Number of block containing this transaction */
+  blockNumber: TQuantity;
+  /** Address of new contract or `null` if no contract was created */
+  contractAddress: Address | null;
+  /** Gas used by this and all preceding transactions in this block */
+  cumulativeGasUsed: TQuantity;
+  /** Pre-London, it is equal to the transaction's gasPrice. Post-London, it is equal to the actual gas price paid for inclusion. */
+  effectiveGasPrice: TQuantity;
+  /** Transaction sender */
+  from: Address;
+  /** Gas used by this transaction */
+  gasUsed: TQuantity;
+  /** List of log objects generated by this transaction */
+  logs: Log<TQuantity, TIndex>[];
+  /** Logs bloom filter */
+  logsBloom: Hex;
+  /** `success` if this transaction was successful or `reverted` if it failed */
+  status: TStatus;
+  /** Transaction recipient or `null` if deploying a contract */
+  to: Address | null;
+  /** Hash of this transaction */
+  transactionHash: Hash;
+  /** Index of this transaction in the block */
+  transactionIndex: TIndex;
+  /** Transaction type */
+  type: TType;
+};
