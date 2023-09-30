@@ -1,28 +1,67 @@
 {
   "name": "@kreskolabs/viem-redstone-connector",
-  "version": "0.4.8",
+  "version": "0.4.10",
   "author": "kresko",
   "license": "MIT",
   "description": "Provides viem extensions and overrides for using Redstone oracles",
   "type": "module",
   "module": "./dist/index.js",
   "main": "./dist/index.cjs",
-  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "import": {
         "types": "./dist/index.d.ts",
-        "import": "./dist/index.js"
+        "default": "./dist/index.js"
       },
       "require": {
         "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
       }
     },
+    "./extensions": {
+      "import": {
+        "types": "./dist/extensions.d.ts",
+        "default": "./dist/extensions.js"
+      },
+      "require": {
+        "types": "./dist/extensions.d.cts",
+        "default": "./dist/extensions.cjs"
+      }
+    },
+    "./types": {
+      "import": {
+        "types": "./dist/types.d.ts",
+        "default": "./dist/types.js"
+      },
+      "require": {
+        "types": "./dist/types.d.cts",
+        "default": "./dist/types.cjs"
+      }
+    },
+    "./viem-contract": {
+      "import": {
+        "types": "./dist/viem-contract.d.ts",
+        "default": "./dist/viem-contract.js"
+      },
+      "require": {
+        "types": "./dist/viem-contract.d.cts",
+        "default": "./dist/viem-contract.cjs"
+      }
+    },
+    "./viem-contract-*": {
+      "import": {
+        "types": "./dist/viem-contract-*.d.ts",
+        "default": "./dist/viem-contract-*.js"
+      },
+      "require": {
+        "types": "./dist/viem-contract-*.d.cts",
+        "default": "./dist/viem-contract-*.cjs"
+      }
+    },
     "./*": {
       "import": {
         "types": "./dist/*.d.ts",
-        "import": "./dist/*.js"
+        "default": "./dist/*.js"
       },
       "require": {
         "types": "./dist/*.d.cts",
