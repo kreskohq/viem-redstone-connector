@@ -25,18 +25,12 @@ import {
   type SimulateContractReturnType,
   type Transport,
   type WatchContractEventParameters,
-} from "viem";
+} from "viem/_types";
 import { parseAccount } from "viem/accounts";
 import { estimateGas } from "viem/actions";
-import { getPublicClientRs, getWalletClientRs } from ".";
+import { getPublicClientRs, getWalletClientRs } from "./index";
 import { RedstoneHelper } from "./redstone";
-import type {
-  EstimateContractGasParamsRs,
-  GetContractReturnType,
-  RsReadParams,
-  SimulateContractParametersRs,
-  WriteParamsRs,
-} from "./types";
+import * as LocalTypes from "./types";
 
 export const getRsReadFn = (
   initialDataFeeds: string[],
@@ -55,7 +49,7 @@ export const getRsReadFn = (
     dataFeeds = initialDataFeeds,
     mockDataFeedValues,
     ...callParams
-  }: RsReadParams<TAbi, TFunctionName>) {
+  }: LocalTypes.RsReadParams<TAbi, TFunctionName>) {
     try {
       const argsForEncoding = {
         abi,
@@ -116,7 +110,7 @@ export const getRsWriteFn = (
     dataSuffix,
     chain,
     ...request
-  }: WriteParamsRs<TAbi, TFN, TChain, TAcc, TChainOverride>) {
+  }: LocalTypes.WriteParamsRs<TAbi, TFN, TChain, TAcc, TChainOverride>) {
     try {
       const argsForEncoding = {
         abi,
@@ -164,7 +158,7 @@ export const getRsEstimateFn = (
     dataSuffix,
     chain,
     ...request
-  }: WriteParamsRs<TAbi, TFN, TChain, TAcc, TChainOverride>) {
+  }: LocalTypes.WriteParamsRs<TAbi, TFN, TChain, TAcc, TChainOverride>) {
     try {
       const argsForEncoding = {
         abi,
@@ -210,7 +204,7 @@ export const getEstimateContractGasFn = (
     dataFeeds = initialDataFeeds,
     mockDataFeedValues,
     ...request
-  }: EstimateContractGasParamsRs<
+  }: LocalTypes.EstimateContractGasParamsRs<
     TAbi,
     TFunctionName,
     TChain,
@@ -295,7 +289,7 @@ export const getSimulateContractFn = (
     dataFeeds = initialDataFeeds,
     mockDataFeedValues,
     ...callRequest
-  }: SimulateContractParametersRs<
+  }: LocalTypes.SimulateContractParametersRs<
     TAbi,
     TFunctionName,
     TChain,
@@ -421,7 +415,12 @@ export function getContract<
 > & {
   dataFeeds?: string[];
   mockDataFeedValues?: number[];
-}): GetContractReturnType<TAbi, TPublicClient, TWalletClient, TAddress> & {
+}): LocalTypes.GetContractReturnType<
+  TAbi,
+  TPublicClient,
+  TWalletClient,
+  TAddress
+> & {
   dataFeeds: typeof dataFeeds;
 } {
   const hasPublicClient = publicClient !== undefined && publicClient !== null;
@@ -463,7 +462,7 @@ export function getContract<
               ...parameters: [
                 args?: readonly unknown[],
                 options?: Omit<
-                  RsReadParams,
+                  LocalTypes.RsReadParams,
                   "abi" | "address" | "functionName" | "args"
                 >
               ]
@@ -494,7 +493,7 @@ export function getContract<
               ...parameters: [
                 args?: readonly unknown[],
                 options?: Omit<
-                  SimulateContractParametersRs,
+                  LocalTypes.SimulateContractParametersRs,
                   "abi" | "address" | "functionName" | "args"
                 >
               ]
@@ -594,7 +593,7 @@ export function getContract<
               ...parameters: [
                 args?: readonly unknown[],
                 options?: Omit<
-                  WriteParamsRs,
+                  LocalTypes.WriteParamsRs,
                   "abi" | "address" | "functionName" | "args"
                 >
               ]
@@ -610,7 +609,7 @@ export function getContract<
                 dataFeeds: parameters[1]?.dataFeeds || dataFeeds,
                 mockDataFeedValues:
                   parameters[1]?.mockDataFeedValues || mockDataFeedValues,
-              } as unknown as WriteParamsRs<TAbi, typeof functionName, TChain, TAccount>);
+              } as unknown as LocalTypes.WriteParamsRs<TAbi, typeof functionName, TChain, TAccount>);
             };
           },
         }
@@ -627,7 +626,7 @@ export function getContract<
               ...parameters: [
                 args?: readonly unknown[],
                 options?: Omit<
-                  EstimateContractGasParamsRs,
+                  LocalTypes.EstimateContractGasParamsRs,
                   "abi" | "address" | "functionName" | "args"
                 >
               ]
@@ -644,9 +643,9 @@ export function getContract<
                 mockDataFeedValues:
                   parameters[1]?.mockDataFeedValues || mockDataFeedValues,
                 account:
-                  (options as EstimateContractGasParamsRs).account ??
+                  (options as LocalTypes.EstimateContractGasParamsRs).account ??
                   walletClient.account,
-              } as EstimateContractGasParamsRs);
+              } as LocalTypes.EstimateContractGasParamsRs);
             };
           },
         }
@@ -656,7 +655,7 @@ export function getContract<
   contract.address = address;
   contract.abi = abi;
 
-  return contract as unknown as GetContractReturnType<
+  return contract as unknown as LocalTypes.GetContractReturnType<
     TAbi,
     TPublicClient,
     TWalletClient,
