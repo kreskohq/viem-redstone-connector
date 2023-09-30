@@ -6,12 +6,12 @@ import {
 } from "viem";
 import { mnemonicToAccount } from "viem/accounts";
 import { arbitrumGoerli } from "viem/chains";
-import { MNEMONIC_TESTNET } from "../env.ts";
-import { getContract } from "../extensions.ts";
-import { getPublicClientRs, getWalletClientRs } from "../index.ts";
-import { RedstoneHelper } from "../redstone/index.ts";
-import { demoDataServiceConfig } from "../redstone/mocks.ts";
-import { Kresko } from "../utils/kresko.ts";
+import { MNEMONIC_TESTNET } from "../env";
+import { getContract } from "../extensions";
+import { getPublicClientRs, getWalletClientRs } from "../index";
+import { RedstoneHelper } from "../redstone";
+import { demoDataServiceConfig } from "../redstone/mocks";
+import { Kresko } from "../utils/kresko";
 const configs = {
   public: {
     chain: arbitrumGoerli,
@@ -76,7 +76,7 @@ const test = async () => {
   );
 
   const readResultContract = await contract.read.getAccountCollateralValue([
-    walletClient.account.address,
+    walletClient.account!.address,
   ]);
 
   console.assert(
@@ -87,7 +87,7 @@ const test = async () => {
   const readResultPublicClient = await publicClient.rsRead({
     abi: Kresko.abi,
     functionName: "getAccountCollateralValue",
-    args: [walletClient.account.address],
+    args: [walletClient.account!.address],
     address: Kresko.address,
     dataFeeds: initialDataFeeds,
   });
@@ -99,13 +99,14 @@ const test = async () => {
 
   const writeGasEstimate = await contract.estimateGas.withdrawCollateral(
     [
-      walletClient.account.address,
+      walletClient.account!.address,
       "0x04636F1e9e9B7F4d21310f0149b6f40458756c99",
       1000n,
       0n,
     ],
     {
       dataFeeds: ["DAI", "ETH", "USDf", "BTC"],
+      account: walletClient.account!,
     }
   );
 
@@ -113,7 +114,7 @@ const test = async () => {
 
   const simulateResult = await contract.simulate.withdrawCollateral(
     [
-      walletClient.account.address,
+      walletClient.account!.address,
       "0x04636F1e9e9B7F4d21310f0149b6f40458756c99",
       1000n,
       0n,
@@ -130,7 +131,7 @@ const test = async () => {
     abi: Kresko.abi,
     functionName: "withdrawCollateral",
     args: [
-      walletClient.account.address,
+      walletClient.account!.address,
       "0x04636F1e9e9B7F4d21310f0149b6f40458756c99",
       1000n,
       0n,

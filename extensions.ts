@@ -29,12 +29,12 @@ import {
 import { parseAccount } from "viem/accounts";
 import { estimateGas } from "viem/actions";
 import { getPublicClientRs, getWalletClientRs } from "./index";
-import { RedstoneHelper } from "./redstone";
+import * as Redstone from "./redstone";
 import * as LocalTypes from "./types";
 
 export const getRsReadFn = (
   initialDataFeeds: string[],
-  redstone: RedstoneHelper,
+  redstone: Redstone.RedstoneHelper,
   client: ReturnType<typeof createPublicClient>
 ) =>
   async function rsRead<
@@ -90,7 +90,7 @@ export const getRsReadFn = (
 
 export const getRsWriteFn = (
   initialDataFeeds: string[],
-  redstone: RedstoneHelper,
+  redstone: Redstone.RedstoneHelper,
   client: ReturnType<typeof createWalletClient>
 ) =>
   async function <
@@ -138,7 +138,7 @@ export const getRsWriteFn = (
 
 export const getRsEstimateFn = (
   initialDataFeeds: string[],
-  redstone: RedstoneHelper,
+  redstone: Redstone.RedstoneHelper,
   client: ReturnType<typeof createWalletClient>
 ) =>
   async function <
@@ -186,7 +186,7 @@ export const getRsEstimateFn = (
 
 export const getEstimateContractGasFn = (
   initialDataFeeds: string[],
-  redstone: RedstoneHelper,
+  redstone: Redstone.RedstoneHelper,
   client:
     | ReturnType<typeof createPublicClient>
     | ReturnType<typeof createWalletClient>
@@ -272,7 +272,7 @@ export const getEstimateContractGasFn = (
 
 export const getSimulateContractFn = (
   initialDataFeeds: string[],
-  redstone: RedstoneHelper,
+  redstone: Redstone.RedstoneHelper,
   client: ReturnType<typeof createPublicClient>
 ) =>
   async function <

@@ -1,6 +1,6 @@
 {
   "name": "@kreskolabs/viem-redstone-connector",
-  "version": "0.4.4",
+  "version": "0.4.6",
   "author": "kresko",
   "license": "MIT",
   "description": "Provides viem extensions and overrides for using Redstone oracles",
@@ -31,8 +31,8 @@
     }
   },
   "scripts": {
-    "test": "ts-node test/test.ts",
-    "sb": "ts-node test/sandbox.ts",
+    "test": "ts-node ./test/test.ts",
+    "sb": "ts-node ./test/sandbox.ts",
     "build": "tsup"
   },
   "dependencies": {

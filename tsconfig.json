@@ -2,9 +2,11 @@
   "compilerOptions": {
     "target": "esnext",
     "module": "esnext",
-    "noEmit": true,
     "strict": false,
-    "allowImportingTsExtensions": true,
+    "emitDeclarationOnly": true,
+    "declaration": true,
+    "importHelpers": true,
+    "outDir": "dist",
     "moduleResolution": "Bundler",
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
@@ -13,5 +15,20 @@
   },
   "ts-node": {
     "esm": true
-  }
+  },
+  "files": [
+    "index.ts",
+    "extensions.ts",
+    "types.ts",
+    "viem-contract.ts",
+    "type-utils.ts",
+    "redstone/index.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "./redstone/mocks.ts",
+    "./redstone/test.ts",
+    "test"
+  ]
 }
