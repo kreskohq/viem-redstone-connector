@@ -8,34 +8,36 @@ import {
   ExtractAbiFunctionNames,
 } from "abitype";
 import {
-  Chain,
-  Account,
   Abi,
-  WriteContractParameters,
-  ReadContractParameters,
+  Address,
+  CallParameters,
+  Chain,
   ContractFunctionConfig,
+  CreateContractEventFilterParameters,
+  CreateContractEventFilterReturnType,
+  EstimateContractGasReturnType,
+  EstimateGasParameters,
+  FormattedTransactionRequest,
   GetValue,
   Hex,
-  SendTransactionParameters,
   Narrow,
-  Address,
   PublicClient,
+  ReadContractParameters,
+  ReadContractReturnType,
+  SendTransactionParameters,
+  SimulateContractReturnType,
   WalletClient,
-  CreateContractEventFilterParameters,
   WatchContractEventParameters,
   WatchContractEventReturnType,
+  WriteContractParameters,
   WriteContractReturnType,
-  ReadContractReturnType,
-  EstimateContractGasReturnType,
-  SimulateContractReturnType,
-  CreateContractEventFilterReturnType,
-  EstimateGasParameters,
-  CallParameters,
-} from "viem";
+} from "viem/_types";
+import { Account } from "viem/_types/types/account";
+
 import {
   AbiEventParametersToPrimitiveTypes,
   MaybeExtractEventArgsFromAbi,
-} from "viem/dist/types/types/contract";
+} from "viem/_types/types/contract";
 import {
   IsNarrowable,
   IsNever,
@@ -43,7 +45,7 @@ import {
   Or,
   Prettify,
   UnionOmit,
-} from "viem/dist/types/types/utils";
+} from "viem/types/utils";
 
 export type RsReadParams<
   TAbi extends Abi | readonly unknown[] = Abi,
@@ -53,24 +55,39 @@ export type RsReadParams<
   mockDataFeedValues?: number[];
 };
 
+export type GetAccountParameter<
+  TAccount extends Account | undefined = Account | undefined
+> = TAccount extends undefined
+  ? { account: Account | Address }
+  : { account?: Account | Address };
+
+export type GetChain<
+  chain extends Chain | undefined,
+  chainOverride extends Chain | undefined = undefined
+> = chain extends undefined
+  ? { chain: chainOverride | null }
+  : { chain?: chainOverride | null };
 export type WriteParamsRs<
   TAbi extends Abi | readonly unknown[] = Abi,
   TFunctionName extends string = string,
   TChain extends Chain | undefined = Chain,
-  TAccount extends Account | undefined = undefined,
-  TChainOverride extends Chain | undefined = undefined
+  TAccount extends Account | undefined = Account | undefined,
+  TChainOverride extends Chain | undefined = Chain | undefined
 > = ContractFunctionConfig<TAbi, TFunctionName, "payable" | "nonpayable"> &
+  GetAccountParameter<TAccount> &
+  GetChain<TChain, TChainOverride> &
   UnionOmit<
-    SendTransactionParameters<TChain, TAccount, TChainOverride>,
-    "chain" | "to" | "data" | "value"
+    FormattedTransactionRequest<
+      TChainOverride extends Chain ? TChainOverride : TChain
+    >,
+    "from" | "to" | "data" | "value"
   > &
-  GetChainOverride<TChainOverride> &
   GetValue<
     TAbi,
     TFunctionName,
     SendTransactionParameters<
       TChain,
-      TAccount,
+      Account,
       TChainOverride
     > extends SendTransactionParameters
       ? SendTransactionParameters<TChain, TAccount, TChainOverride>["value"]
@@ -571,6 +588,7 @@ type GetWatchEvent<
             options?: Options
           ]
     ) => WatchContractEventReturnType;
+
 type GetEventFilter<
   Narrowable extends boolean,
   TAbi extends Abi | readonly unknown[],

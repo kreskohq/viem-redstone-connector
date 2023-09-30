@@ -1,5 +1,12 @@
 import type { AbiEvent } from "abitype";
 import {
+  createPublicClient,
+  createWalletClient,
+  decodeFunctionResult,
+  encodeFunctionData,
+  getContractError,
+  toBytes,
+  toHex,
   type Abi,
   type Account,
   type Address,
@@ -18,14 +25,6 @@ import {
   type SimulateContractReturnType,
   type Transport,
   type WatchContractEventParameters,
-  type WriteContractParameters,
-  createPublicClient,
-  createWalletClient,
-  decodeFunctionResult,
-  encodeFunctionData,
-  getContractError,
-  toHex,
-  toBytes,
 } from "viem";
 import { parseAccount } from "viem/accounts";
 import { estimateGas } from "viem/actions";
@@ -101,7 +100,7 @@ export const getRsWriteFn = (
   client: ReturnType<typeof createWalletClient>
 ) =>
   async function <
-    TAcc extends Account | undefined = Account,
+    TAcc extends Account | undefined = Account | undefined,
     TAbi extends Abi | readonly unknown[] = Abi,
     TChain extends Chain | undefined = Chain,
     TFN extends string | undefined = string,
@@ -611,7 +610,7 @@ export function getContract<
                 dataFeeds: parameters[1]?.dataFeeds || dataFeeds,
                 mockDataFeedValues:
                   parameters[1]?.mockDataFeedValues || mockDataFeedValues,
-              } as unknown as WriteContractParameters<TAbi, typeof functionName, TChain, TAccount>);
+              } as unknown as WriteParamsRs<TAbi, typeof functionName, TChain, TAccount>);
             };
           },
         }

@@ -9,6 +9,7 @@ import { arbitrumGoerli } from "viem/chains";
 import { MNEMONIC_TESTNET } from "../env.ts";
 import { getContract } from "../extensions.ts";
 import { getPublicClientRs, getWalletClientRs } from "../index.ts";
+import { RedstoneHelper } from "../redstone/index.ts";
 import { demoDataServiceConfig } from "../redstone/mocks.ts";
 import { Kresko } from "../utils/kresko.ts";
 const configs = {
@@ -44,6 +45,11 @@ const contract = getContract({
 });
 
 const test = async () => {
+  const redstone = new RedstoneHelper(demoDataServiceConfig);
+
+  const payload = await redstone.getPayload(["USDC"], [3]);
+
+  console.log(payload);
   const prices = await publicClient.rsPrices(initialDataFeeds);
   const length = initialDataFeeds.length;
   console.assert(

@@ -70,7 +70,7 @@ export class RedstoneHelper extends RedstoneBase {
     return this.mock || (values && values.length)
       ? RedstoneHelper.getSimpleNumericMockPayload({
           mockSignersCount: 1,
-          timestampMilliseconds: Date.now(),
+          timestampMilliseconds: DEFAULT_TIMESTAMP_FOR_TESTS,
           dataPoints: feeds.map((dataFeedId, i) => ({
             dataFeedId,
             value: values ? values[i] : 0,
