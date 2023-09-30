@@ -3,16 +3,17 @@
     "target": "esnext",
     "module": "esnext",
     "noEmit": true,
+    "strict": false,
     "allowImportingTsExtensions": true,
     "moduleResolution": "node",
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
-    "outDir": "./dist"
+    "types": []
   },
-  "include": ["index.ts", "extensions.ts", "types.ts"],
-  "exclude": ["dist/**/*.d.{ts,cts}", "**/**/*.d.ts", "**/**/.d.cts"],
+  "files": ["./index.ts"],
+  "exclude": ["node_modules", "./node_modules", "./node_modules/*"],
   "ts-node": {
     "esm": true
   }

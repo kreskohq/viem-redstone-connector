@@ -25,7 +25,7 @@ import {
   type SimulateContractReturnType,
   type Transport,
   type WatchContractEventParameters,
-} from "viem/_types";
+} from "viem";
 import { parseAccount } from "viem/accounts";
 import { estimateGas } from "viem/actions";
 import { getPublicClientRs, getWalletClientRs } from "./index";

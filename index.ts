@@ -5,7 +5,7 @@ import {
   type WalletClient,
   type PublicClientConfig,
   type WalletClientConfig,
-} from "viem/_types";
+} from "viem";
 
 import {
   getEstimateContractGasFn,

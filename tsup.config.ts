@@ -6,13 +6,13 @@ export default defineConfig(() => {
     dts: true,
     minify: true,
     outDir: "dist",
-    splitting: true,
+    splitting: false,
     target: ["esnext"],
     lib: ["esnext"],
     platform: "node",
     tsconfig: "./tsconfig.json",
     clean: true,
     bundle: true,
-    treeshake: true,
+    treeshake: false,
   };
 });

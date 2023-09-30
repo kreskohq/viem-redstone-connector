@@ -14,7 +14,6 @@ import {
   Chain,
   ContractFunctionConfig,
   CreateContractEventFilterParameters,
-  CreateContractEventFilterReturnType,
   EstimateContractGasReturnType,
   EstimateGasParameters,
   FormattedTransactionRequest,
@@ -31,21 +30,18 @@ import {
   WatchContractEventReturnType,
   WriteContractParameters,
   WriteContractReturnType,
-} from "viem/_types";
-import { Account } from "viem/_types/types/account";
+  Account,
+} from "viem";
 
-import {
-  AbiEventParametersToPrimitiveTypes,
-  MaybeExtractEventArgsFromAbi,
-} from "viem/_types/types/contract";
-import {
+import type {
   IsNarrowable,
   IsNever,
   IsUndefined,
   Or,
   Prettify,
   UnionOmit,
-} from "viem/types/utils";
+} from "./type-utils";
+import * as LocalContract from "./viem-contract";
 
 export type RsReadParams<
   TAbi extends Abi | readonly unknown[] = Abi,
@@ -566,7 +562,7 @@ type GetWatchEvent<
   TAbiEvent extends AbiEvent = TAbi extends Abi
     ? ExtractAbiEvent<TAbi, TEventName>
     : AbiEvent,
-  Args = AbiEventParametersToPrimitiveTypes<TAbiEvent["inputs"]>,
+  Args = LocalContract.AbiEventParametersToPrimitiveTypes<TAbiEvent["inputs"]>,
   Options = Prettify<
     Omit<
       WatchContractEventParameters<TAbi, TEventName>,
@@ -596,7 +592,7 @@ type GetEventFilter<
   TAbiEvent extends AbiEvent = TAbi extends Abi
     ? ExtractAbiEvent<TAbi, TEventName>
     : AbiEvent,
-  Args = AbiEventParametersToPrimitiveTypes<TAbiEvent["inputs"]>,
+  Args = LocalContract.AbiEventParametersToPrimitiveTypes<TAbiEvent["inputs"]>,
   Options = Prettify<
     Omit<
       CreateContractEventFilterParameters<TAbi, TEventName>,
@@ -606,7 +602,9 @@ type GetEventFilter<
   IndexedInputs = Extract<TAbiEvent["inputs"][number], { indexed: true }>
 > = Narrowable extends true
   ? <
-      TArgs extends MaybeExtractEventArgsFromAbi<TAbi, TEventName> | undefined,
+      TArgs extends
+        | LocalContract.MaybeExtractEventArgsFromAbi<TAbi, TEventName>
+        | undefined,
       TStrict extends boolean | undefined = undefined
     >(
       ...parameters: IsNever<IndexedInputs> extends true
@@ -616,7 +614,12 @@ type GetEventFilter<
             options?: Options & { strict?: TStrict }
           ]
     ) => Promise<
-      CreateContractEventFilterReturnType<TAbi, TEventName, TArgs, TStrict>
+      LocalContract.CreateContractEventFilterReturnType<
+        TAbi,
+        TEventName,
+        TArgs,
+        TStrict
+      >
     >
   : <TStrict extends boolean | undefined = undefined>(
       ...parameters:
@@ -625,7 +628,7 @@ type GetEventFilter<
             args: readonly unknown[] | CreateContractFilterOptions,
             options?: Options & { strict?: TStrict }
           ]
-    ) => Promise<CreateContractEventFilterReturnType>;
+    ) => Promise<LocalContract.CreateContractEventFilterReturnType>;
 type CreateContractFilterOptions =
   RemoveProperties<CreateContractEventFilterParameters>;
 type WatchContractEventOptions = RemoveProperties<WatchContractEventParameters>;

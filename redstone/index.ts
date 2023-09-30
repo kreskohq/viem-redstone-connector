@@ -6,18 +6,18 @@ import {
   DEFAULT_TIMESTAMP_FOR_TESTS,
   MAX_MOCK_SIGNERS_COUNT,
   MOCK_PRIVATE_KEYS,
-} from "./mocks.ts";
+} from "./mocks";
 import {
   DataPackagesRequestParams,
   SignedDataPackage,
   type SimpleNumericMockConfig,
-} from "./types.ts";
+} from "./types";
 import {
   getDataPackageHash,
   getMockHash,
   requestPayload,
   requestPayloadHash,
-} from "./utils.ts";
+} from "./utils";
 // @ts-expect-error
 if (!globalThis.crypto) globalThis.crypto = webcrypto;
 
