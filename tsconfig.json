@@ -5,15 +5,12 @@
     "noEmit": true,
     "strict": false,
     "allowImportingTsExtensions": true,
-    "moduleResolution": "node",
+    "moduleResolution": "Bundler",
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "resolveJsonModule": true,
-    "esModuleInterop": true,
-    "types": []
+    "esModuleInterop": true
   },
-  "files": ["./index.ts"],
-  "exclude": ["node_modules", "./node_modules", "./node_modules/*"],
   "ts-node": {
     "esm": true
   }
