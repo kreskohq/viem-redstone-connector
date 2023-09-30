@@ -8,7 +8,7 @@ export default defineConfig(() => {
     sourcemap: true,
     outDir: "dist",
     splitting: false,
-    target: ["esnext"],
+    target: ["es2021"],
     lib: ["esnext"],
     platform: "node",
     tsconfig: "./tsconfig.json",
