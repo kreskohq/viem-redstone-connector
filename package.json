@@ -5,7 +5,7 @@
   "license": "MIT",
   "description": "Provides viem extensions and overrides for using Redstone oracles",
   "module": "./dist/index.mjs",
-  "main": "./dist/index.cjs",
+  "main": "./dist/index.js",
   "exports": {
     ".": {
       "import": {
@@ -13,10 +13,10 @@
         "default": "./dist/index.mjs"
       },
       "require": {
-        "types": "./dist/index.d.cts",
-        "default": "./dist/index.cjs"
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
       },
-      "default": "./dist/index.cjs"
+      "default": "./dist/index.js"
     },
     "./types": {
       "import": {
@@ -25,9 +25,9 @@
       },
       "require": {
         "types": "./dist/types.d.cts",
-        "default": "./dist/types.cjs"
+        "default": "./dist/types.js"
       },
-      "default": "./dist/types.cjs"
+      "default": "./dist/types.js"
     },
     "./*": {
       "import": {
@@ -35,10 +35,10 @@
         "default": "./dist/*.mjs"
       },
       "require": {
-        "types": "./dist/*.d.cts",
-        "default": "./dist/*.cjs"
+        "types": "./dist/*.d.ts",
+        "default": "./dist/*.js"
       },
-      "default": "./dist/*.cjs"
+      "default": "./dist/*.js"
     }
   },
   "scripts": {
