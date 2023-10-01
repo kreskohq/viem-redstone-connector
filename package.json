@@ -1,6 +1,6 @@
 {
   "name": "@kreskolabs/viem-redstone-connector",
-  "version": "0.4.16",
+  "version": "0.4.17",
   "author": "kresko",
   "license": "MIT",
   "description": "Provides viem extensions and overrides for using Redstone oracles",
@@ -15,7 +15,8 @@
       "require": {
         "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
-      }
+      },
+      "default": "./dist/index.cjs"
     },
     "./types": {
       "import": {
@@ -25,7 +26,8 @@
       "require": {
         "types": "./dist/types.d.cts",
         "default": "./dist/types.cjs"
-      }
+      },
+      "default": "./dist/types.cjs"
     },
     "./*": {
       "import": {
@@ -35,7 +37,8 @@
       "require": {
         "types": "./dist/*.d.cts",
         "default": "./dist/*.cjs"
-      }
+      },
+      "default": "./dist/*.cjs"
     }
   },
   "scripts": {
