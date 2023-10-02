@@ -1,44 +1,45 @@
 {
   "name": "@kreskolabs/viem-redstone-connector",
-  "version": "0.4.18",
+  "version": "0.5.0",
   "author": "kresko",
   "license": "MIT",
   "description": "Provides viem extensions and overrides for using Redstone oracles",
+  "type": "module",
   "module": "./dist/index.mjs",
-  "main": "./dist/index.js",
+  "main": "./dist/index.cjs",
   "exports": {
     ".": {
       "import": {
-        "types": "./dist/index.d.mts",
+        "types": "./dist/index.d.ts",
         "default": "./dist/index.mjs"
       },
       "require": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.js"
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
       },
-      "default": "./dist/index.js"
+      "default": "./dist/index.mjs"
     },
     "./types": {
       "import": {
-        "types": "./dist/types.d.mts",
+        "types": "./dist/types.d.ts",
         "default": "./dist/types.mjs"
       },
       "require": {
         "types": "./dist/types.d.cts",
-        "default": "./dist/types.js"
+        "default": "./dist/types.cjs"
       },
-      "default": "./dist/types.js"
+      "default": "./dist/types.mjs"
     },
     "./*": {
       "import": {
-        "types": "./dist/*.d.mts",
+        "types": "./dist/*.d.ts",
         "default": "./dist/*.mjs"
       },
       "require": {
-        "types": "./dist/*.d.ts",
-        "default": "./dist/*.js"
+        "types": "./dist/*.d.cts",
+        "default": "./dist/*.cjs"
       },
-      "default": "./dist/*.js"
+      "default": "./dist/*.mjs"
     }
   },
   "scripts": {

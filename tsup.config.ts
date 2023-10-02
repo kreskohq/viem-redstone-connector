@@ -8,10 +8,16 @@ export default defineConfig(() => {
     sourcemap: true,
     outDir: "dist",
     splitting: false,
+    noExternal: [/(@noble\/secp256k1)/],
     target: ["es2021"],
     lib: ["esnext"],
     platform: "node",
     tsconfig: "./tsconfig.json",
+    outExtension(ctx) {
+      return {
+        js: ctx.format === "cjs" ? ".cjs" : ".mjs",
+      };
+    },
     clean: true,
     bundle: true,
     treeshake: false,
