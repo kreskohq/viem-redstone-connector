@@ -48,11 +48,11 @@
     "build": "tsup"
   },
   "dependencies": {
-    "@noble/secp256k1": "^2.0.0",
     "abitype": "^0.9.8",
     "viem": "^1.13.2"
   },
   "devDependencies": {
+    "@noble/secp256k1": "^2.0.0",
     "@types/node": "^20.4.2",
     "terser": "^5.19.1",
     "ts-node": "^10.9.1",
