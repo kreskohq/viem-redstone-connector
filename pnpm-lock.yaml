@@ -1,13 +1,10 @@
-lockfileVersion: '6.1'
+lockfileVersion: '6.0'
 
 settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
 dependencies:
-  '@noble/secp256k1':
-    specifier: ^2.0.0
-    version: 2.0.0
   abitype:
     specifier: ^0.9.8
     version: 0.9.8(typescript@5.1.6)
@@ -16,6 +13,9 @@ dependencies:
     version: 1.13.2(typescript@5.1.6)
 
 devDependencies:
+  '@noble/secp256k1':
+    specifier: ^2.0.0
+    version: 2.0.0
   '@types/node':
     specifier: ^20.4.2
     version: 20.4.2
@@ -293,7 +293,7 @@ packages:
 
   /@noble/secp256k1@2.0.0:
     resolution: {integrity: sha512-rUGBd95e2a45rlmFTqQJYEFA4/gdIARFfuTuTqLglz0PZ6AKyzyXsEZZq7UZn8hZsvaBgpCzKKBJizT2cJERXw==}
-    dev: false
+    dev: true
 
   /@nodelib/fs.scandir@2.1.5:
     resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}

@@ -195,7 +195,7 @@ const collateralValue = await contract.read.getAccountCollateralValue(
   ["0xB48bB6b68Ab4D366B4f9A30eE6f7Ee55125c2D9d"],
   {
     dataFeeds: ["DAI", "USDf", "ETH", "BTC"], // Optional override.
-    /* mockDataFeedValues: [1,1,1900,30500] */ // for mocked numeric values
+    mockDataFeedValues: [1, 1, 1900, 30500],
   }
 );
 

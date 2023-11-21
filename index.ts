@@ -1,27 +1,19 @@
 import {
-  createPublicClient,
-  createWalletClient,
-  type PublicClient,
-  type WalletClient,
-  type PublicClientConfig,
-  type WalletClientConfig,
-} from "viem";
+	createPublicClient,
+	createWalletClient,
+	type PublicClient,
+	type WalletClient,
+	type PublicClientConfig,
+	type WalletClientConfig,
+} from 'viem';
 
-import {
-  getEstimateContractGasFn,
-  getRsReadFn,
-  getRsWriteFn,
-  getSimulateContractFn,
-} from "./extensions";
-import {
-  RedstoneHelper,
-  type DataPackageRequestParams,
-} from "./redstone/index";
+import { getEstimateContractGasFn, getRsReadFn, getRsWriteFn, getSimulateContractFn } from './extensions.js';
+import { RedstoneHelper, type DataPackageRequestParams } from './redstone/index.js';
 
 /**
  * Viem getContract with Redstone calldata wrapping for read/write/simulate/estimateGas
  */
-export { getContract, splitSignature } from "./extensions";
+export { getContract, splitSignature } from './extensions.js';
 
 /**
  * Viem public client with extended Redstone methods
@@ -31,9 +23,9 @@ export { getContract, splitSignature } from "./extensions";
  * @returns Viem client with extended Redstone methods `rsPrices`, `rsDataPackage`, `rsRead`, `rsEstimateGas`, `rsSimulate`
  */
 export const getPublicClientRs = (
-  config: PublicClientConfig,
-  redstoneConfig: DataPackageRequestParams,
-  dataFeeds?: string[]
+	config: PublicClientConfig,
+	redstoneConfig: DataPackageRequestParams,
+	dataFeeds?: string[]
 ) => extendPublicClient(createPublicClient(config), redstoneConfig, dataFeeds);
 
 /**
@@ -44,19 +36,19 @@ export const getPublicClientRs = (
  * @returns Viem client with extended Redstone methods `rsPrices`, `rsDataPackage`, `rsRead`, `rsEstimateGas`, `rsSimulate`
  */
 export const extendPublicClient = (
-  publicClient: PublicClient,
-  redstoneConfig: DataPackageRequestParams,
-  dataFeeds?: string[]
+	publicClient: PublicClient,
+	redstoneConfig: DataPackageRequestParams,
+	dataFeeds?: string[]
 ) => {
-  const redstone = new RedstoneHelper(redstoneConfig);
-  return publicClient.extend((client) => ({
-    dataFeeds: dataFeeds,
-    rsPrices: redstone.getPrices,
-    rsDataPackage: redstone.getDataPackage,
-    rsRead: getRsReadFn(dataFeeds, redstone, client),
-    rsEstimateGas: getEstimateContractGasFn(dataFeeds, redstone, client),
-    rsSimulate: getSimulateContractFn(dataFeeds, redstone, client),
-  }));
+	const redstone = new RedstoneHelper(redstoneConfig);
+	return publicClient.extend((client) => ({
+		dataFeeds: dataFeeds,
+		rsPrices: redstone.getPrices,
+		rsDataPackage: redstone.getDataPackage,
+		rsRead: getRsReadFn(dataFeeds, redstone, client),
+		rsEstimateGas: getEstimateContractGasFn(dataFeeds, redstone, client),
+		rsSimulate: getSimulateContractFn(dataFeeds, redstone, client),
+	}));
 };
 
 /**
@@ -68,9 +60,9 @@ export const extendPublicClient = (
  *
  */
 export const getWalletClientRs = (
-  config: WalletClientConfig,
-  redstoneConfig: DataPackageRequestParams,
-  dataFeeds?: string[]
+	config: WalletClientConfig,
+	redstoneConfig: DataPackageRequestParams,
+	dataFeeds?: string[]
 ) => extendWalletClient(createWalletClient(config), redstoneConfig, dataFeeds);
 
 /**
@@ -82,19 +74,19 @@ export const getWalletClientRs = (
  *
  */
 export const extendWalletClient = (
-  walletClient: WalletClient,
-  redstoneConfig: DataPackageRequestParams,
-  dataFeeds?: string[]
+	walletClient: WalletClient,
+	redstoneConfig: DataPackageRequestParams,
+	dataFeeds?: string[]
 ) => {
-  const redstone = new RedstoneHelper(redstoneConfig);
+	const redstone = new RedstoneHelper(redstoneConfig);
 
-  return walletClient.extend((client) => ({
-    dataFeeds: dataFeeds,
-    rsPrices: redstone.getPrices,
-    rsDataPackage: redstone.getDataPackage,
-    rsWrite: getRsWriteFn(dataFeeds, redstone, client),
-    rsEstimateGas: getEstimateContractGasFn(dataFeeds, redstone, client),
-  }));
+	return walletClient.extend((client) => ({
+		dataFeeds: dataFeeds,
+		rsPrices: redstone.getPrices,
+		rsDataPackage: redstone.getDataPackage,
+		rsWrite: getRsWriteFn(dataFeeds, redstone, client),
+		rsEstimateGas: getEstimateContractGasFn(dataFeeds, redstone, client),
+	}));
 };
 export type ExtendedPublicClient = ReturnType<typeof extendPublicClient>;
 export type ExtendedWalletClient = ReturnType<typeof extendWalletClient>;

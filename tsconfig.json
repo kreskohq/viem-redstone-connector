@@ -1,27 +1,22 @@
 {
-  "compilerOptions": {
-    "target": "es2021",
-    "module": "esnext",
-    "strict": false,
-    "emitDeclarationOnly": true,
-    "declaration": true,
-    "importHelpers": true,
-    "outDir": "dist",
-    "moduleResolution": "bundler",
-    "skipLibCheck": true,
-    "skipDefaultLibCheck": true,
-    "resolveJsonModule": true,
-    "esModuleInterop": true
-  },
-  "ts-node": {
-    "esm": true
-  },
-  "files": ["index.ts", "types.ts"],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "./redstone/mocks.ts",
-    "./redstone/test.ts",
-    "test"
-  ]
+	"compilerOptions": {
+		"target": "es2022",
+		"module": "esnext",
+		"strict": false,
+		"emitDeclarationOnly": true,
+		"declaration": true,
+		"importHelpers": true,
+		"outDir": "dist",
+		"moduleResolution": "bundler",
+		"skipLibCheck": true,
+		"skipDefaultLibCheck": true,
+		"resolveJsonModule": true,
+		"esModuleInterop": true
+	},
+	"ts-node": {
+		"esm": true
+	},
+	"files": ["index.ts", "types.ts", "env.ts"],
+	"include": ["redstone", "test", "utils"],
+	"exclude": ["node_modules", "dist"]
 }
