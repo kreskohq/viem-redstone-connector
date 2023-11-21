@@ -2,25 +2,30 @@ import * as secp from '@noble/secp256k1';
 import { webcrypto } from 'crypto';
 
 import { toBytes } from 'viem';
+import { RedstoneConfig } from '../index.js';
 import { DEFAULT_TIMESTAMP_FOR_TESTS, MAX_MOCK_SIGNERS_COUNT, MOCK_PRIVATE_KEYS } from './mocks.js';
-import { DataPackagesRequestParams, SignedDataPackage, type SimpleNumericMockConfig } from './types.js';
+import { SignedDataPackage, type SimpleNumericMockConfig } from './types.js';
 import { getDataPackageHash, getMockHash, requestPayload, requestPayloadHash } from './utils.js';
 // @ts-expect-error
 if (!globalThis.crypto) globalThis.crypto = webcrypto;
-
-export type DataPackageRequestParams = Omit<DataPackagesRequestParams, 'dataFeeds'> & { mock?: boolean };
 
 export class RedstoneBase {
 	public dataServiceId: string;
 	public uniqueSignersCount: number;
 	public urls: string[];
-	public mock?: boolean;
+	public mockDataFeedValues: number[] = [];
 
-	constructor(config: DataPackageRequestParams) {
+	public disablePayloadsDryRun = false;
+
+	public dataFeeds: string[] = [];
+
+	constructor(config: RedstoneConfig) {
 		this.dataServiceId = config.dataServiceId;
 		this.uniqueSignersCount = config.uniqueSignersCount;
 		this.urls = config.urls;
-		this.mock = config.mock;
+		this.mockDataFeedValues = config.mockDataFeedValues || [];
+		this.disablePayloadsDryRun = config.disablePayloadsDryRun || false;
+		this.dataFeeds = config.dataFeeds || [];
 	}
 
 	public requestRedstonePayload = async (feeds: string[]) => {
@@ -50,17 +55,27 @@ export class RedstoneBase {
 }
 
 export class RedstoneHelper extends RedstoneBase {
-	public getPayload = async (feeds: string[], values?: number[]) => {
-		return this.mock || (values && values.length)
-			? RedstoneHelper.getSimpleNumericMockPayload({
-					mockSignersCount: 1,
-					timestampMilliseconds: DEFAULT_TIMESTAMP_FOR_TESTS,
-					dataPoints: feeds.map((dataFeedId, i) => ({
-						dataFeedId,
-						value: values ? values[i] : 0,
-					})),
-			  })
-			: this.requestRedstonePayload(feeds);
+	public getPayload = async (mocked: boolean, feeds = this.dataFeeds, values = this.mockDataFeedValues) => {
+		if (mocked) {
+			if (!values.length) {
+				throw new Error(`Should set mocked values for getPayload, dataFeeds set: ${feeds}`);
+			}
+			if (!feeds.length) {
+				throw new Error(`Should set mocked dataFeeds for getPayload, values set: ${values}`);
+			}
+			if (values.length !== feeds.length) {
+				throw new Error(`values.length !== feeds.length, ${values.length} !== ${feeds.length}`);
+			}
+			return RedstoneHelper.getSimpleNumericMockPayload({
+				mockSignersCount: 1,
+				timestampMilliseconds: DEFAULT_TIMESTAMP_FOR_TESTS,
+				dataPoints: feeds.map((dataFeedId, i) => ({
+					dataFeedId,
+					value: values ? values[i] : 0,
+				})),
+			});
+		}
+		return this.requestRedstonePayload(feeds);
 	};
 
 	public static getSimpleNumericMockPayload = async (config: SimpleNumericMockConfig) => {

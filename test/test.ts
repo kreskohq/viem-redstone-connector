@@ -5,7 +5,7 @@ import { MNEMONIC_TESTNET } from '../env.js';
 import { getContract } from '../extensions.js';
 import { getPublicClientRs, getWalletClientRs } from '../index.js';
 import { RedstoneHelper } from '../redstone/index.js';
-import { demoDataServiceConfig } from '../redstone/mocks.js';
+import { demoDataServiceConfig, mockedConfig } from '../redstone/mocks.js';
 import { Kresko } from '../utils/kresko.js';
 const configs = {
 	public: {
@@ -20,6 +20,20 @@ const configs = {
 } as const;
 
 const publicClient = getPublicClientRs(configs.public, demoDataServiceConfig);
+const publicClientMocked = getPublicClientRs(configs.public, mockedConfig);
+const publicClientShouldMock = getPublicClientRs(configs.public, {
+	...demoDataServiceConfig,
+	shouldMock: (chain) => chain.id === 1234,
+});
+const publicClientShouldMock2 = getPublicClientRs(configs.public, {
+	...mockedConfig,
+	shouldMock: (chain) => chain.id === 1234,
+});
+const publicClientShouldMock3 = getPublicClientRs(configs.public, {
+	...mockedConfig,
+	shouldMock: (chain) => chain.id === arbitrumGoerli.id,
+});
+
 const walletClient = getWalletClientRs(configs.wallet, demoDataServiceConfig);
 
 const initialDataFeeds = ['DAI', 'ETH', 'USDf', 'BTC'];
@@ -36,16 +50,57 @@ const contract = getContract({
 	address: Kresko.address,
 	walletClient: walletClient,
 	publicClient: publicClient,
-	dataFeeds: initialDataFeeds,
+	dataFeeds: mockedConfig.dataFeeds,
+	mockDataFeedValues: mockedConfig.mockDataFeedValues,
 });
 
 const test = async () => {
 	const redstone = new RedstoneHelper(demoDataServiceConfig);
 
-	const payload = await redstone.getPayload(['USDC'], [3]);
+	const payload = await redstone.getPayload(true, ['USDC'], [3]);
+	// console.log('payload redstone class', payload);
 
-	console.log(payload);
-	const prices = await publicClient.rsPrices(initialDataFeeds);
+	contract.stash.save('key', 'value');
+	const valueContract = contract.stash.get('key');
+	const valueWalletClient = walletClient.stash.get('key');
+	const valuePublicClient = publicClient.stash.get('key');
+
+	console.assert(valueContract === 'value', 'valueContract');
+	console.assert(valueWalletClient === 'value', 'valueWalletClient');
+	console.assert(valuePublicClient === 'value', 'valuePublicClient');
+
+	const value = contract.stash.pop('key');
+	console.assert(value === 'value', 'value after pop');
+
+	const valueAfterPop = contract.stash.get('key');
+	const valueAfterPop2 = walletClient.stash.get('key');
+	const valueAfterPop3 = publicClient.stash.get('key');
+	console.assert(valueAfterPop === undefined, 'valueAfterPop');
+	console.assert(valueAfterPop2 === undefined, 'valueAfterPop2');
+	console.assert(valueAfterPop3 === undefined, 'valueAfterPop3');
+
+	const prices = await publicClient.rs.getPrices(initialDataFeeds);
+
+	const shouldMock = publicClientShouldMock.rsMocking();
+	const shouldMock2 = publicClientShouldMock2.rsMocking();
+	const shouldMock3 = publicClientShouldMock3.rsMocking();
+	console.assert(shouldMock === false, 'shouldMock');
+	console.assert(shouldMock2 === false, 'shouldMock2');
+	console.assert(shouldMock3 === true, 'shouldMock3');
+
+	const mockedPayloadPublic = await publicClientMocked.rs.getPayload(true);
+	const mockedPayloadContract = await contract.rs.getPayload(true);
+
+	console.assert(mockedPayloadPublic.length > 0, 'mockedPayloadPublic');
+	console.assert(mockedPayloadPublic === mockedPayloadContract, 'mockedPayloadPublic === mockedPayloadContract');
+
+	const payloadPublic = await publicClientMocked.rs.getPayload(false);
+	const payloadContract = await contract.rs.getPayload(false);
+	console.assert(payloadPublic.length > 0, 'payloadPublic');
+	console.assert(payloadPublic === payloadContract, 'payloadPublic === payloadContract');
+	console.assert(mockedPayloadPublic !== payloadPublic, 'mockedPayloadPublic !== payloadPublic');
+	console.assert(mockedPayloadContract !== payloadContract, 'mockedPayloadContract !== payloadContract');
+
 	const length = initialDataFeeds.length;
 	console.assert(prices.length === length, `prices: length is not ${length}, got ${prices.length}}`);
 
@@ -61,14 +116,14 @@ const test = async () => {
 
 	console.assert(readResultContractNoFeeds === readResultPublicClientNoFeeds, 'readResultContractNoFeeds');
 
-	const readResultContract = await contract.read.getAccountCollateralValue([walletClient.account!.address]);
+	const readResultContract = await contract.read.getAccountCollateralValue([walletClient.account.address]);
 
 	console.assert(readResultContract > 0n, 'readResultContract: value is not > 0');
 
 	const readResultPublicClient = await publicClient.rsRead({
 		abi: Kresko.abi,
 		functionName: 'getAccountCollateralValue',
-		args: [walletClient.account!.address],
+		args: [walletClient.account.address],
 		address: Kresko.address,
 		dataFeeds: initialDataFeeds,
 	});

@@ -1,62 +1,62 @@
 {
-  "name": "@kreskolabs/viem-redstone-connector",
-  "version": "0.5.0",
-  "author": "kresko",
-  "license": "MIT",
-  "description": "Provides viem extensions and overrides for using Redstone oracles",
-  "type": "module",
-  "module": "./dist/index.mjs",
-  "main": "./dist/index.cjs",
-  "exports": {
-    ".": {
-      "import": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.mjs"
-      },
-      "require": {
-        "types": "./dist/index.d.cts",
-        "default": "./dist/index.cjs"
-      },
-      "default": "./dist/index.mjs"
-    },
-    "./types": {
-      "import": {
-        "types": "./dist/types.d.ts",
-        "default": "./dist/types.mjs"
-      },
-      "require": {
-        "types": "./dist/types.d.cts",
-        "default": "./dist/types.cjs"
-      },
-      "default": "./dist/types.mjs"
-    },
-    "./*": {
-      "import": {
-        "types": "./dist/*.d.ts",
-        "default": "./dist/*.mjs"
-      },
-      "require": {
-        "types": "./dist/*.d.cts",
-        "default": "./dist/*.cjs"
-      },
-      "default": "./dist/*.mjs"
-    }
-  },
-  "scripts": {
-    "test": "ts-node ./test/test.ts",
-    "sb": "ts-node ./test/sandbox.ts",
-    "build": "tsup"
-  },
-  "dependencies": {
-    "abitype": "^0.9.8",
-    "viem": "^1.13.2"
-  },
-  "devDependencies": {
-    "@noble/secp256k1": "^2.0.0",
-    "@types/node": "^20.4.2",
-    "terser": "^5.19.1",
-    "ts-node": "^10.9.1",
-    "tsup": "^7.1.0",
-    "typescript": "^5.1.6"
-  }
+	"name": "@kreskolabs/viem-redstone-connector",
+	"version": "0.5.1",
+	"author": "kresko",
+	"license": "MIT",
+	"description": "Provides viem extensions and overrides for using Redstone oracles",
+	"type": "module",
+	"module": "./dist/index.mjs",
+	"main": "./dist/index.cjs",
+	"exports": {
+		".": {
+			"import": {
+				"types": "./dist/index.d.ts",
+				"default": "./dist/index.mjs"
+			},
+			"require": {
+				"types": "./dist/index.d.cts",
+				"default": "./dist/index.cjs"
+			},
+			"default": "./dist/index.mjs"
+		},
+		"./types": {
+			"import": {
+				"types": "./dist/types.d.ts",
+				"default": "./dist/types.mjs"
+			},
+			"require": {
+				"types": "./dist/types.d.cts",
+				"default": "./dist/types.cjs"
+			},
+			"default": "./dist/types.mjs"
+		},
+		"./*": {
+			"import": {
+				"types": "./dist/*.d.ts",
+				"default": "./dist/*.mjs"
+			},
+			"require": {
+				"types": "./dist/*.d.cts",
+				"default": "./dist/*.cjs"
+			},
+			"default": "./dist/*.mjs"
+		}
+	},
+	"scripts": {
+		"test": "ts-node ./test/test.ts",
+		"sb": "ts-node ./test/sandbox.ts",
+		"build": "tsup"
+	},
+	"dependencies": {
+		"abitype": "^0.10.2",
+		"viem": "^1.19.6"
+	},
+	"devDependencies": {
+		"@noble/secp256k1": "^2.0.0",
+		"@types/node": "^20.4.2",
+		"terser": "^5.19.1",
+		"ts-node": "^10.9.1",
+		"tsup": "^7.1.0",
+		"typescript": "^5.1.6"
+	}
 }
