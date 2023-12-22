@@ -9,8 +9,8 @@ dependencies:
     specifier: ^0.10.2
     version: 0.10.2(typescript@5.1.6)
   viem:
-    specifier: ^1.19.6
-    version: 1.19.6(typescript@5.1.6)
+    specifier: ^1.20.3
+    version: 1.20.3(typescript@5.1.6)
 
 devDependencies:
   '@noble/secp256k1':
@@ -1060,8 +1060,8 @@ packages:
     resolution: {integrity: sha512-wa7YjyUGfNZngI/vtK0UHAN+lgDCxBPCylVXGp0zu59Fz5aiGtNXaq3DhIov063MorB+VfufLh3JlF2KdTK3xg==}
     dev: true
 
-  /viem@1.19.6(typescript@5.1.6):
-    resolution: {integrity: sha512-WSBHBMurWIWQk2yisOD8hqSA5S56cZu6onty3hzauVjiHMildtVWujF7YT0xjoU40GpFODvJASRR2RFdzgvUUg==}
+  /viem@1.20.3(typescript@5.1.6):
+    resolution: {integrity: sha512-7CrmeCb2KYkeCgUmUyb1hsf+IX/PLwi+Np+Vm4YUTPeG82y3HRSgGHSaCOp3d0YtR2kXD3nv9y5kE7LBFE+wWw==}
     peerDependencies:
       typescript: '>=5.0.4'
     peerDependenciesMeta:

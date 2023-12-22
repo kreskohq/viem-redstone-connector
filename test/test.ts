@@ -1,6 +1,6 @@
 import { PublicClientConfig, WalletClientConfig, http, zeroAddress } from 'viem';
 import { mnemonicToAccount } from 'viem/accounts';
-import { arbitrumGoerli } from 'viem/chains';
+import { arbitrumGoerli, arbitrumSepolia } from 'viem/chains';
 import { MNEMONIC_TESTNET } from '../env.js';
 import { getContract } from '../extensions.js';
 import { getPublicClientRs, getWalletClientRs } from '../index.js';
@@ -12,6 +12,10 @@ const configs = {
 		chain: arbitrumGoerli,
 		transport: http('https://arbitrum-goerli.public.blastapi.io'),
 	} as PublicClientConfig,
+	arbSepolia: {
+		chain: arbitrumSepolia,
+		transport: http('https://arbitrum-sepolia.public.blastapi.io'),
+	} as PublicClientConfig,
 	wallet: {
 		chain: arbitrumGoerli,
 		transport: http('https://arbitrum-goerli.public.blastapi.io'),
@@ -20,6 +24,11 @@ const configs = {
 } as const;
 
 const publicClient = getPublicClientRs(configs.public, demoDataServiceConfig);
+const publicClientArbSepolia = getPublicClientRs(configs.arbSepolia, {
+	...demoDataServiceConfig,
+	dataFeeds: ['DAI', 'USDC', 'BTC', 'ETH', 'ARB', 'SPY'],
+	mockDataFeedValues: [0.9998, 1, 37691, 2090, 1.05, 450],
+});
 const publicClientMocked = getPublicClientRs(configs.public, mockedConfig);
 const publicClientShouldMock = getPublicClientRs(configs.public, {
 	...demoDataServiceConfig,
@@ -57,6 +66,10 @@ const contract = getContract({
 const test = async () => {
 	const redstone = new RedstoneHelper(demoDataServiceConfig);
 
+	const payloadArbSep = await publicClientArbSepolia.rs.getPayload(false);
+	console.log(await redstone.getPrices(['BTC', 'ETH']));
+	console.log('payload redstone', payloadArbSep);
+	return;
 	const payload = await redstone.getPayload(true, ['USDC'], [3]);
 	// console.log('payload redstone class', payload);
 
