@@ -48,7 +48,7 @@
 		"build": "tsup"
 	},
 	"dependencies": {
-		"abitype": "^0.10.2",
+		"abitype": "^0.10.3",
 		"viem": "^1.20.3"
 	},
 	"devDependencies": {

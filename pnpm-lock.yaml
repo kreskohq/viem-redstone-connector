@@ -6,8 +6,8 @@ settings:
 
 dependencies:
   abitype:
-    specifier: ^0.10.2
-    version: 0.10.2(typescript@5.1.6)
+    specifier: ^0.10.3
+    version: 0.10.3(typescript@5.1.6)
   viem:
     specifier: ^1.20.3
     version: 1.20.3(typescript@5.1.6)
@@ -355,8 +355,8 @@ packages:
     resolution: {integrity: sha512-Dd0BYtWgnWJKwO1jkmTrzofjK2QXXcai0dmtzvIBhcA+RsG5h8R3xlyta0kGOZRNfL9GuRtb1knmPEhQrePCEw==}
     dev: true
 
-  /abitype@0.10.2(typescript@5.1.6):
-    resolution: {integrity: sha512-1XndI+RKFWK4+TXCNv1683MRyX5NGmlHXCvqzjOqhSS3PQrxT2QYRZq1bMPPRNjn89B3eVaM2w7y3jVj/OIUzA==}
+  /abitype@0.10.3(typescript@5.1.6):
+    resolution: {integrity: sha512-tRN+7XIa7J9xugdbRzFv/95ka5ivR/sRe01eiWvM0HWWjHuigSZEACgKa0sj4wGuekTDtghCx+5Izk/cOi78pQ==}
     peerDependencies:
       typescript: '>=5.0.4'
       zod: ^3 >=3.22.0
